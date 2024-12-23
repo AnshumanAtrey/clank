@@ -1,4 +1,4 @@
-![Clank Logo](path/to/clank.png)
+![Clank Logo](./clank-preview-image.png)
 
 Clank is a command-line tool written in Go that generates all possible combinations of phone numbers based on a pattern where some digits are unknown. It's particularly useful for generating number sequences when you remember only part of a phone number.
 

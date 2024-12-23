@@ -35,6 +35,16 @@ func main() { // The main function is the entry point of the program.
     // Generate combinations
     combinations := generateCombinations(pattern) // Call the generateCombinations function to generate all possible combinations based on the pattern.
 
+    // Print ASCII Art
+    fmt.Println(
+`________  ___       ________  _________  ___  ___       
+|\   ____\|\  \     |\   __  \|\   ___  \|\  \|\  \     
+\ \  \___|\ \  \    \ \  \|\  \ \  \\ \  \ \  \/  /|_   
+ \ \  \    \ \  \    \ \   __  \ \  \\ \  \ \   ___  \  
+  \ \  \____\ \  \____\ \  \ \  \ \  \\ \  \ \  \\ \  \ 
+   \ \_______\ \_______\ \__\ \__\ \__\\ \__\ \__\\ \__\
+    \|_______|\|_______|\|__|\|__|\|__| \|__|\|__| \|__|`)
+
     // Print results
     fmt.Printf("Generated %d combinations for pattern %s:\n", len(combinations), pattern) // Print the number of generated combinations and the pattern.
     for _, number := range combinations { // Loop through each generated number.
