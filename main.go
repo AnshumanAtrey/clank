@@ -5,6 +5,8 @@ import (
 	"fmt"     // Importing the 'fmt' package for formatted I/O operations.
 	"os"      // Importing the 'os' package to interact with the operating system.
 	"strings" // Importing the 'strings' package for string manipulation functions.
+	// New import for rate limiting
+	// New import for HTTP requests
 )
 
 func main() { // The main function is the entry point of the program.

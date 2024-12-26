@@ -35,9 +35,9 @@ This will create an executable named `clank` (or `clank.exe` on Windows).
 
 ## Usage
 
-You can run Clank in two ways:
+You can run Clank in several ways:
 
-1. Using the `-n` flag:
+1. Using the `-n` flag for pattern:
 
 ```bash
 clank -n 918115605xxx
@@ -48,6 +48,17 @@ clank -n 918115605xxx
 ```bash
 clank 918115605xxx
 ```
+
+3. With Truecaller lookup:
+
+```bash
+clank -n 918115605xxx -lookup
+```
+
+### Flags
+
+- `-n`: Specify the phone number pattern
+- `-lookup`: Enable Truecaller lookup for generated numbers
 
 ### Pattern Format
 
@@ -63,7 +74,13 @@ clank 918115605xxx
 clank -n 918115605xxx
 ```
 
-2. Generate combinations for a number with two unknown digits:
+2. Generate combinations with Truecaller lookup:
+
+```bash
+clank -n 918115605xxx -lookup
+```
+
+3. Generate combinations for a number with two unknown digits:
 
 ```bash
 clank 9181156xx99
@@ -88,18 +105,23 @@ clank/
 ## Technical Details
 
 - Written in Go
-- No external dependencies
-- Uses standard Go libraries:
-  - `flag` for command-line argument parsing
-  - `fmt` for I/O
-  - `strings` for string manipulation
-  - `os` for system operations
+- Dependencies:
+  - Standard Go libraries:
+    - `flag` for command-line argument parsing
+    - `fmt` for I/O
+    - `strings` for string manipulation
+    - `os` for system operations
+    - `net/http` for Truecaller API requests
+    - `time` for rate limiting
+- Truecaller API integration for number lookup
 
 ## Limitations
 
 - Large numbers of placeholders (e.g., more than 6-7) may generate a very large number of combinations
 - Processing time increases exponentially with the number of placeholders
 - Memory usage scales with the number of combinations generated
+- Truecaller API rate limits may apply
+- Truecaller lookup requires internet connectivity
 
 ## Future Enhancements
 
