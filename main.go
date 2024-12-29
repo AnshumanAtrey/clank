@@ -1,6 +1,6 @@
 package main // This declares the package name. 'main' is the starting point of the program.
-
 import (
+	// New import for file writing
 	"flag"    // Importing the 'flag' package to handle command-line flags.
 	"fmt"     // Importing the 'fmt' package for formatted I/O operations.
 	"os"      // Importing the 'os' package to interact with the operating system.
@@ -47,10 +47,10 @@ func main() { // The main function is the entry point of the program.
    \ \_______\ \_______\ \__\ \__\ \__\\ \__\ \__\\ \__\
     \|_______|\|_______|\|__|\|__|\|__| \|__|\|__| \|__|`)
 
-    // Print results
-    fmt.Printf("Generated %d combinations for pattern %s:\n", len(combinations), pattern) // Print the number of generated combinations and the pattern.
-    for _, number := range combinations { // Loop through each generated number.
-        fmt.Println(number) // Print each generated number.
+    // Print results directly to console
+    fmt.Printf("Generated %d combinations for pattern %s:\n", len(combinations), pattern)
+    for _, number := range combinations {
+        fmt.Println(number)
     }
 }
 
