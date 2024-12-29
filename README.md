@@ -35,7 +35,7 @@ This will create an executable named `clank` (or `clank.exe` on Windows).
 
 ## Usage
 
-You can run Clank in several ways:
+You can run Clank in two ways:
 
 1. Using the `-n` flag for pattern:
 
@@ -49,16 +49,9 @@ clank -n 918115605xxx
 clank 918115605xxx
 ```
 
-3. With Truecaller lookup:
-
-```bash
-clank -n 918115605xxx -lookup
-```
-
 ### Flags
 
 - `-n`: Specify the phone number pattern
-- `-lookup`: Enable Truecaller lookup for generated numbers
 
 ### Pattern Format
 
@@ -74,24 +67,11 @@ clank -n 918115605xxx -lookup
 clank -n 918115605xxx
 ```
 
-2. Generate combinations with Truecaller lookup:
-
-```bash
-clank -n 918115605xxx -lookup
-```
-
-3. Generate combinations for a number with two unknown digits:
+2. Generate combinations for a number with two unknown digits:
 
 ```bash
 clank 9181156xx99
 ```
-
-### Output
-
-The tool will display:
-
-- Total number of generated combinations
-- All possible number combinations
 
 ## Project Structure
 
