@@ -111,6 +111,7 @@ clank -n 918115605xxx
 ```
 
 2. Generate combinations for a number with two unknown digits:
+3. Generate combinations for a number with two unknown digits:
 
 ```bash
 clank 9181156xx99
