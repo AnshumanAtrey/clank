@@ -35,30 +35,66 @@ This will create an executable named `clank` (or `clank.exe` on Windows).
 
 ## Usage
 
-You can run Clank in several ways:
+You can run Clank in two ways (note: on Unix-like systems and Windows PowerShell, use `./clank` instead of just `clank`):
 
 1. Using the `-n` flag for pattern:
 
 ```bash
-clank -n 918115605xxx
+./clank -n 918115605xxx
 ```
 
 2. Direct pattern input:
 
 ```bash
-clank 918115605xxx
+./clank 918115605xxx
 ```
 
-3. With Truecaller lookup:
+### Making Clank Available Globally
+
+#### On Linux/macOS:
+
+1. Move the executable to a directory in your PATH:
 
 ```bash
-clank -n 918115605xxx -lookup
+sudo mv clank /usr/local/bin/
 ```
+
+OR create a symbolic link:
+
+```bash
+sudo ln -s $(pwd)/clank /usr/local/bin/clank
+```
+
+#### On Windows:
+
+1. Create a directory for your executables (if you haven't already):
+
+```powershell
+mkdir C:\bin
+```
+
+2. Move the clank.exe to this directory:
+
+```powershell
+move clank.exe C:\bin
+```
+
+3. Add to PATH:
+   - Right-click on 'This PC' or 'My Computer'
+   - Click 'Properties'
+   - Click 'Advanced system settings'
+   - Click 'Environment Variables'
+   - Under 'System Variables', find and select 'Path'
+   - Click 'Edit'
+   - Click 'New'
+   - Add 'C:\bin'
+   - Click 'OK' on all windows
+
+After adding to PATH, restart your terminal/command prompt. You can then run `clank` from any directory without using `./`.
 
 ### Flags
 
 - `-n`: Specify the phone number pattern
-- `-lookup`: Enable Truecaller lookup for generated numbers
 
 ### Pattern Format
 
@@ -74,24 +110,11 @@ clank -n 918115605xxx -lookup
 clank -n 918115605xxx
 ```
 
-2. Generate combinations with Truecaller lookup:
-
-```bash
-clank -n 918115605xxx -lookup
-```
-
-3. Generate combinations for a number with two unknown digits:
+2. Generate combinations for a number with two unknown digits:
 
 ```bash
 clank 9181156xx99
 ```
-
-### Output
-
-The tool will display:
-
-- Total number of generated combinations
-- All possible number combinations
 
 ## Project Structure
 
