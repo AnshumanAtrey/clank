@@ -95,6 +95,7 @@ After adding to PATH, restart your terminal/command prompt. You can then run `cl
 ### Flags
 
 - `-n`: Specify the phone number pattern
+- `-h`: Show help message and usage information
 
 ### Pattern Format
 
@@ -104,13 +105,18 @@ After adding to PATH, restart your terminal/command prompt. You can then run `cl
 
 ### Examples
 
-1. Generate combinations for a number with three unknown digits:
+1. Show help message:
+
+```bash
+clank -h
+```
+
+2. Generate combinations for a number with three unknown digits:
 
 ```bash
 clank -n 918115605xxx
 ```
 
-2. Generate combinations for a number with two unknown digits:
 3. Generate combinations for a number with two unknown digits:
 
 ```bash

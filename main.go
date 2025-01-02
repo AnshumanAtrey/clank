@@ -12,7 +12,14 @@ import (
 func main() { // The main function is the entry point of the program.
     // Define flags
     numberFlag := flag.String("n", "", "Phone number pattern (use x as placeholder)") // Define a string flag '-n' with a default value of an empty string and a description.
+    helpFlag := flag.Bool("h", false, "Show help message")
     flag.Parse() // Parse the command-line flags.
+
+    // Check for help flag first
+    if *helpFlag {
+        printHelp()
+        os.Exit(0)
+    }
 
     var pattern string // Declare a variable to hold the phone number pattern.
     if *numberFlag == "" { // Check if the numberFlag is empty.
@@ -98,4 +105,23 @@ func generateCombinations(pattern string) []string { // Define a function that t
     }
 
     return combinations // Return the slice of generated combinations.
+}
+
+// Add this new function
+func printHelp() {
+    fmt.Println(`Clank - Phone Number Pattern Generator
+
+Usage:
+    clank -n <pattern>    Generate combinations for given pattern
+    clank <pattern>       Generate combinations for given pattern (direct input)
+    clank -h             Show this help message
+
+Pattern Format:
+    - Use numbers (0-9) for known digits
+    - Use 'x' or 'X' as placeholders for unknown digits
+    - Example: 918115605xxx
+
+Examples:
+    clank -n 918115605xxx
+    clank 9181156xx99`)
 }
