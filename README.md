@@ -175,9 +175,32 @@ clank ignorant --json +14155552671                     # JSON output
 
 This matches research file `07-phone-to-identity.md` — we ship the endpoints we found, surface their real-world failure modes rather than pretending they always work.
 
+### `clank whatsapp <login | lookup | logout | reset>` — WhatsApp phone-to-user
+
+Native Go via [`go.mau.fi/whatsmeow`](https://github.com/tulir/whatsmeow) — the same MTProto-of-WhatsApp client that powers Beeper's `mautrix-whatsapp` bridge. Returns registered boolean + canonical JID + business verified-name + "About" text + profile-pic URL + device count.
+
+**Setup** (one-time):
+
+1. `clank whatsapp login` — renders a QR code in your terminal. Open WhatsApp on your phone → Settings → Linked Devices → Link a Device → scan.
+2. Session is persisted to `~/.clank/whatsapp.db` (pure-Go SQLite via `modernc.org/sqlite` — no C compiler needed).
+
+**Lookup**:
+
+```bash
+clank whatsapp lookup +14155552671              # human-readable
+clank whatsapp lookup --json +14155552671       # JSON
+clank whatsapp logout                            # unlink server-side, delete local DB
+clank whatsapp reset                             # delete local DB only (when session is invalid)
+```
+
+**2026 reality** (per research file `11-whatsapp-whatsmeow.md`):
+- Your phone must stay online within 14 days or WhatsApp unlinks all companions and you'll need to re-pair.
+- OSINT-style usage at >50 lookups/min triggers `events.TemporaryBan` (server-side, hard to predict thresholds). Use a burner WhatsApp account if you plan to query at volume.
+- WhatsApp silently drops invalid numbers (whatsmeow issue #1086) — clank reconciles by `Query` field and surfaces "no response — likely invalid format" instead of false-negative-as-not-registered.
+- `events.LoggedOut` (e.g. you signed out from your phone) auto-deletes the local device row; the next lookup will say "not paired" so you can re-pair.
+
 ## Roadmap
 
-- **WhatsApp presence** via `tulir/whatsmeow` (paired QR session — boolean + JID + business name + status text + profile pic + device count)
 - Truecaller-import flow for users with a paired Android device
 - Additional providers: Twilio Lookup v2, Telnyx, SignalWire, HLR-Lookups
 - `clank dorks` — Google-dork URL generator (PhoneInfoga's 5-bucket taxonomy)

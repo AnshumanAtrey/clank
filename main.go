@@ -18,6 +18,7 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/local"
 	"github.com/AnshumanAtrey/clank/internal/pattern"
 	"github.com/AnshumanAtrey/clank/internal/telegram"
+	"github.com/AnshumanAtrey/clank/internal/whatsapp"
 	"github.com/fatih/color"
 )
 
@@ -36,6 +37,7 @@ Subcommands:
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
   clank telegram <login|lookup|logout>  Telegram phone-to-user resolver
   clank ignorant <phone>                Phone presence on Instagram / Snapchat / Amazon
+  clank whatsapp <login|lookup|logout>  Phone presence on WhatsApp (paired session)
 
 Pattern usage:
   clank <pattern>                       Interactive menu (default)
@@ -101,6 +103,8 @@ func main() {
 			os.Exit(edgar.Command(os.Args[2:]))
 		case "ignorant":
 			os.Exit(ignorant.Command(os.Args[2:]))
+		case "whatsapp":
+			os.Exit(whatsapp.Command(os.Args[2:]))
 		}
 	}
 
