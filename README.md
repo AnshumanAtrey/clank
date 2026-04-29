@@ -158,6 +158,23 @@ clank telegram logout                        # clears session
 
 Returns: user ID, first/last name, username, profile-photo presence, premium / verified / bot / restricted flags. Honours Telegram's privacy settings — users who hide phone-search will return `not registered`. Subject to `FLOOD_WAIT_X` rate-limits at scale.
 
+### `clank ignorant <phone>` — Phone presence on Instagram / Snapchat / Amazon
+
+Pure HTTP probes — no auth, no API key. Native-Go port of [`megadose/ignorant`](https://github.com/megadose/ignorant). Three concurrent goroutines, each hitting a platform's signup / login endpoint to determine whether the phone is registered.
+
+```bash
+clank ignorant +14155552671                            # all 3 checks
+clank ignorant --only instagram,amazon +14155552671    # subset
+clank ignorant --json +14155552671                     # JSON output
+```
+
+**2026 reality:**
+- **Instagram**: endpoint still answers; aggressive 429 throttling per IP. Rotate IPs/VPN for higher throughput.
+- **Snapchat**: web auth was redesigned; CSRF token moved from cookie to JS-side. Returns "method broken" until a new technique is found.
+- **Amazon**: works inconsistently due to anti-bot DOM drift. Returns "yes / no / indeterminate" honestly.
+
+This matches research file `07-phone-to-identity.md` — we ship the endpoints we found, surface their real-world failure modes rather than pretending they always work.
+
 ## Roadmap
 
 - **WhatsApp presence** via `tulir/whatsmeow` (paired QR session — boolean + JID + business name + status text + profile pic + device count)
@@ -165,7 +182,7 @@ Returns: user ID, first/last name, username, profile-photo presence, premium / v
 - Additional providers: Twilio Lookup v2, Telnyx, SignalWire, HLR-Lookups
 - `clank dorks` — Google-dork URL generator (PhoneInfoga's 5-bucket taxonomy)
 - IMEI TAC database refresh (the embedded snapshot is from 2014)
-- Megadose ports: phone → Instagram / Snapchat / Amazon presence
+- Snapchat CSRF rediscovery — the JS-side bearer flow needs tracing
 
 See `research/` for the full landscape — 10 markdown files mapping the OSINT-phone-tool ecosystem and unprecedented verticals.
 

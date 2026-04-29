@@ -13,6 +13,7 @@ import (
 
 	"github.com/AnshumanAtrey/clank/internal/api"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
+	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/imei"
 	"github.com/AnshumanAtrey/clank/internal/local"
 	"github.com/AnshumanAtrey/clank/internal/pattern"
@@ -34,6 +35,7 @@ Subcommands:
   clank imei <15-digit>                 Decode IMEI (Luhn + manufacturer/model from TAC)
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
   clank telegram <login|lookup|logout>  Telegram phone-to-user resolver
+  clank ignorant <phone>                Phone presence on Instagram / Snapchat / Amazon
 
 Pattern usage:
   clank <pattern>                       Interactive menu (default)
@@ -97,6 +99,8 @@ func main() {
 			os.Exit(imei.Command(os.Args[2:]))
 		case "edgar":
 			os.Exit(edgar.Command(os.Args[2:]))
+		case "ignorant":
+			os.Exit(ignorant.Command(os.Args[2:]))
 		}
 	}
 

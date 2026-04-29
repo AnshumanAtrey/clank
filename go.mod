@@ -3,6 +3,7 @@ module github.com/AnshumanAtrey/clank
 go 1.25.0
 
 require (
+	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/fatih/color v1.18.0
 	github.com/gotd/td v0.143.0
 	github.com/nyaruka/phonenumbers v1.7.2
@@ -10,6 +11,7 @@ require (
 )
 
 require (
+	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
