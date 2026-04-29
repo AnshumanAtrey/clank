@@ -1,187 +1,183 @@
 ![Clank Logo](./clank-preview-image.png)
 
-Clank is a command-line tool written in Go that generates all possible combinations of phone numbers based on a pattern where some digits are unknown. It's particularly useful for generating number sequences when you remember only part of a phone number.
+**Clank** is a command-line tool for phone-number reconnaissance. Give it a partial number with `x` placeholders for unknown digits — it expands every combination, then runs OSINT enrichment locally (libphonenumber + carrier maps + spam blacklists) or via a free-tier API of your choice.
+
+```
+$ clank 918115605xxx
+[banner]
+
+Generated 1000 candidates for pattern 918115605xxx
+
+What would you like to do?
+  [1] Local lookup       — instant, no API key (libphonenumber + spam check)
+  [2] Free API lookup    — needs your API key
+  [3] Print all combos   — original behaviour
+  [q] Quit
+
+> 1
+Local lookup — 1000 valid / 1000 total
+NUMBER         VALID  TYPE    REGION  CARRIER      GEO    TZ             SPAM
++918115605000  ✓      MOBILE  IN      BSNL MOBILE  India  Asia/Calcutta  -
++918115605001  ✓      MOBILE  IN      BSNL MOBILE  India  Asia/Calcutta  -
+…
+```
 
 ## Features
 
-- Generate all possible combinations for partial phone numbers
-- Support for any number of unknown digits using 'x' as placeholders
-- Simple command-line interface
-- Input validation
-- Flexible input methods (with or without flags)
+- **Pattern combinator** — fill `x`-placeholders 0..9 to generate up to 100,000 candidates from a partial number.
+- **Local OSINT (no API key)** — Google's libphonenumber via `nyaruka/phonenumbers` gives validity, region, line type, carrier-of-record, geo, timezone, plus E.164/INTERNATIONAL/NATIONAL/RFC3966 formats.
+- **MCC/MNC operator list** — embedded `pbakondy/mcc-mnc-list`; shows every operational network in the detected country.
+- **Spam check** — embedded `Oros42/phone-blacklist` + `jwoertink/blocked-numbers`; flags known reported numbers.
+- **Free-tier API lookup** — pluggable providers (NumVerify, Veriphone, IPQualityScore) with worker pool, quota guard, and clean key handling.
+- **JSON output** — `--json` for piping to `jq` / scripting.
+- **Single static binary** — all data files embedded with `go:embed`. No runtime downloads, no install scripts.
 
-## Installation
-
-### Prerequisites
-
-- Go 1.16 or higher
-
-### Steps
-
-1. Clone the repository:
+## Install
 
 ```bash
-git clone https://github.com/yourusername/clank.git
+go install github.com/AnshumanAtrey/clank@latest
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/AnshumanAtrey/clank.git
 cd clank
+go build -o clank .
 ```
-
-2. Build the project:
-
-```bash
-go build
-```
-
-This will create an executable named `clank` (or `clank.exe` on Windows).
 
 ## Usage
 
-You can run Clank in two ways (note: on Unix-like systems and Windows PowerShell, use `./clank` instead of just `clank`):
+```bash
+clank <pattern>                       # interactive menu (default)
+clank --local <pattern>               # skip menu — pure-offline lookup
+clank --provider numverify <pattern>  # skip menu — call NumVerify
+clank --gen <pattern>                 # legacy: just print all combinations
+clank --json --local <pattern>        # JSON output for scripting
+```
 
-1. Using the `-n` flag for pattern:
+### Pattern format
+
+- Digits `0-9` for known positions
+- `x` or `X` for unknown digits
+- Optional leading `+` for E.164 international form
+- Examples: `918115605xxx`, `+1415xxxxxxx`, `+44xxxxxxxxxx`
+
+### Region hint
+
+For local-format input without a country code, pass `--region`:
 
 ```bash
-./clank -n 918115605xxx
+clank --local --region IN 9181156052      # treat as Indian number
+clank --local --region US 4155552671      # treat as US number
 ```
 
-2. Direct pattern input:
+### API providers
+
+Set the relevant env var (or pass `--key`), then run with `--provider <name>`:
+
+| Provider          | Env var          | Free tier   | Standout field      |
+|-------------------|------------------|-------------|---------------------|
+| NumVerify         | `NUMVERIFY_KEY`  | 100/mo      | mainstream          |
+| Veriphone         | `VERIPHONE_KEY`  | 1,000/mo    | 249 countries       |
+| IPQualityScore    | `IPQS_KEY`       | 1,000/mo    | `fraud_score` 0-100 |
+
+Sign up:
+- IPQualityScore — https://www.ipqualityscore.com/create-account
+- Veriphone — https://veriphone.io/signup
+- NumVerify — https://numverify.com/signup/free
 
 ```bash
-./clank 918115605xxx
+export IPQS_KEY=your_key_here
+clank --provider ipqs --region US 4155552671
 ```
 
-### Making Clank Available Globally
+Before any API run, clank shows a confirmation prompt with the call count so it never silently burns your monthly quota:
 
-#### On Linux/macOS:
-
-1. Move the executable to a directory in your PATH:
-
-```bash
-sudo mv clank /usr/local/bin/
+```
+About to call ipqs 47 times. Continue? [y/N]
 ```
 
-OR create a symbolic link:
+API calls run in a worker pool (default 5 concurrent, override with `--workers N`).
 
-```bash
-sudo ln -s $(pwd)/clank /usr/local/bin/clank
-```
-
-#### On Windows:
-
-1. Create a directory for your executables (if you haven't already):
-
-```powershell
-mkdir C:\bin
-```
-
-2. Move the clank.exe to this directory:
-
-```powershell
-move clank.exe C:\bin
-```
-
-3. Add to PATH:
-   - Right-click on 'This PC' or 'My Computer'
-   - Click 'Properties'
-   - Click 'Advanced system settings'
-   - Click 'Environment Variables'
-   - Under 'System Variables', find and select 'Path'
-   - Click 'Edit'
-   - Click 'New'
-   - Add 'C:\bin'
-   - Click 'OK' on all windows
-
-After adding to PATH, restart your terminal/command prompt. You can then run `clank` from any directory without using `./`.
-
-### Flags
-
-- `-n`: Specify the phone number pattern
-- `-h`: Show help message and usage information
-
-### Pattern Format
-
-- Use numbers (0-9) for known digits
-- Use 'x' or 'X' as placeholders for unknown digits
-- The number of placeholders is unlimited (but be aware that more placeholders will generate more combinations)
-
-### Examples
-
-1. Show help message:
-
-```bash
-clank -h
-```
-
-2. Generate combinations for a number with three unknown digits:
-
-```bash
-clank -n 918115605xxx
-```
-
-3. Generate combinations for a number with two unknown digits:
-
-```bash
-clank 9181156xx99
-```
-
-## Project Structure
+## Project structure
 
 ```
 clank/
-├── main.go        # Main source code
-├── go.mod         # Go module file
-└── README.md      # Documentation
+├── main.go                                # CLI entry, menu, output rendering
+├── internal/
+│   ├── pattern/                           # combinator
+│   ├── local/                             # libphonenumber wrapper, MCC/MNC, spam list
+│   │   └── data/                          # embedded JSON / CSV
+│   └── api/                               # NumVerify / Veriphone / IPQS providers
+└── research/                              # OSINT research notes (5 files)
 ```
 
-## Technical Details
+## Subcommands
 
-- Written in Go
-- Dependencies:
-  - Standard Go libraries:
-    - `flag` for command-line argument parsing
-    - `fmt` for I/O
-    - `strings` for string manipulation
-    - `os` for system operations
-    - `net/http` for Truecaller API requests
-    - `time` for rate limiting
-- Truecaller API integration for number lookup
+### `clank imei <15-digit>` — IMEI decoder + TAC database
+
+Pure offline. Validates Luhn checksum and resolves the 8-digit Type Allocation Code to manufacturer/model via an embedded database (`jpanganiban/imei`, ~25,900 device records, Sep 2014 snapshot). Newer devices won't be in the DB — clearly labelled when missing.
+
+```bash
+clank imei 352099001761481                  # → Alcatel OneTouch 332 (Luhn ✓)
+clank imei 35209900176148                   # 14-digit input — computes the check digit
+clank imei --json 352099001761481           # full JSON for scripting
+```
+
+### `clank edgar <query>` — SEC EDGAR full-text search
+
+Free, no API key. Hits the SEC's full-text search engine (`efts.sec.gov`). Pivots a phone number, address, or any string to every 10-K/10-Q/Form-D/Form-144 filing referencing it. Surfaces business associations and insider activity.
+
+```bash
+clank edgar --hits 5 "(415) 421-7900"          # → 453 Williams Sonoma filings
+clank edgar --forms 10-K --hits 10 "Apple Park Way"  # filter by form type
+clank edgar --json --hits 20 "<your-phone>"         # JSON for jq
+```
+
+Optional: set `CLANK_EDGAR_UA="Your Name your-email@example.com"` to comply with [SEC's user-agent policy](https://www.sec.gov/os/accessing-edgar-data) when running at any volume.
+
+### `clank telegram <subcommand>` — Telegram phone-to-user
+
+Resolves a phone number to a Telegram user (id, name, username, premium/verified flags) via MTProto's `contacts.resolvePhone`. Built on `gotd/td`. Maintained by the same authors who power [Bellingcat's investigations](https://github.com/bellingcat/telegram-phone-number-checker).
+
+**Setup** (one-time):
+
+1. Get an `app_id` and `app_hash` from <https://my.telegram.org/apps>
+2. `export TG_APP_ID=12345`
+3. `export TG_APP_HASH=abc...`
+4. `clank telegram login` — enters phone → SMS code → optional 2FA password. Session is saved to `~/.clank/telegram.session`.
+
+**Lookup**:
+
+```bash
+clank telegram lookup +14155552671          # human-readable
+clank telegram lookup --json +14155552671   # JSON
+clank telegram logout                        # clears session
+```
+
+Returns: user ID, first/last name, username, profile-photo presence, premium / verified / bot / restricted flags. Honours Telegram's privacy settings — users who hide phone-search will return `not registered`. Subject to `FLOOD_WAIT_X` rate-limits at scale.
+
+## Roadmap
+
+- **WhatsApp presence** via `tulir/whatsmeow` (paired QR session — boolean + JID + business name + status text + profile pic + device count)
+- Truecaller-import flow for users with a paired Android device
+- Additional providers: Twilio Lookup v2, Telnyx, SignalWire, HLR-Lookups
+- `clank dorks` — Google-dork URL generator (PhoneInfoga's 5-bucket taxonomy)
+- IMEI TAC database refresh (the embedded snapshot is from 2014)
+- Megadose ports: phone → Instagram / Snapchat / Amazon presence
+
+See `research/` for the full landscape — 10 markdown files mapping the OSINT-phone-tool ecosystem and unprecedented verticals.
 
 ## Limitations
 
-- Large numbers of placeholders (e.g., more than 6-7) may generate a very large number of combinations
-- Processing time increases exponentially with the number of placeholders
-- Memory usage scales with the number of combinations generated
-- Truecaller API rate limits may apply
-- Truecaller lookup requires internet connectivity
-
-## Future Enhancements
-
-Planned features for future releases:
-
-- Progress bar for large combinations
-- Output formatting options
-- Country code validation
-- Interactive mode
-- Save results to file
-- Integration with phone number lookup services
-- Support for other search patterns
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Inspired by the need for efficient phone number pattern matching
-- Thanks to the Go community for the excellent standard library
-
-## Author
-
-atrey.dev
+- `GetCarrierForNumber` returns the **originally-allocated** carrier. After number portability the answer may be wrong; libphonenumber suppresses the carrier name in known-portability regions (US/UK/IN mobile). When that happens, clank prints `-` rather than guessing.
+- Google-dork generation, messaging-app presence, and live HLR are roadmap items, not in v1.
 
 ## Disclaimer
 
-This tool is intended for legitimate use cases only. Please ensure you comply with all applicable laws and regulations regarding phone number lookup and privacy when using this tool.
+This tool is for legitimate use — fraud investigation, journalism, security research, knowing what's online about your own number. Comply with applicable laws and the providers' Terms of Service.
+
+## License
+
+MIT

@@ -1,0 +1,22 @@
+# build artefacts
+/clank
+/clank.exe
+*.exe
+*.test
+*.out
+
+# Go
+vendor/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# user-supplied secrets (never commit API keys)
+.env
+.env.*
+!.env.example
