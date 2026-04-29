@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/AnshumanAtrey/clank/internal/api"
+	"github.com/AnshumanAtrey/clank/internal/deep"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/imei"
@@ -33,6 +34,7 @@ const banner = `________  ___       ________  _________  ___  ___
 const helpText = `clank — phone-number pattern + OSINT lookup CLI
 
 Subcommands:
+  clank deep <phone>                    Run ALL sources concurrently — local + APIs + Telegram + WhatsApp + ignorant + EDGAR
   clank imei <15-digit>                 Decode IMEI (Luhn + manufacturer/model from TAC)
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
   clank telegram <login|lookup|logout>  Telegram phone-to-user resolver
@@ -105,6 +107,8 @@ func main() {
 			os.Exit(ignorant.Command(os.Args[2:]))
 		case "whatsapp":
 			os.Exit(whatsapp.Command(os.Args[2:]))
+		case "deep":
+			os.Exit(deep.Command(os.Args[2:]))
 		}
 	}
 

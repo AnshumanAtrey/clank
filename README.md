@@ -115,6 +115,61 @@ clank/
 
 ## Subcommands
 
+### `clank deep <phone>` — run every source at once
+
+The orchestrator. Takes one phone number, fans out to all six enrichment sources concurrently, and prints a unified report. Sources gracefully skip when not configured (no API key, not logged in, etc.) — they never block each other.
+
+```bash
+clank deep +14155552671                 # everything
+clank deep --region IN 9181156055       # auto-prepend +91
+clank deep --quick +14155552671         # skip messengers — fast (<3s)
+clank deep --no-apis +14155552671       # skip Tier 2 even if keys are set
+clank deep --json +14155552671 | jq     # structured output for scripting
+```
+
+Sources run by default:
+- **Local** — libphonenumber + MCC/MNC + spam list (instant, no key)
+- **Free APIs** — NumVerify, Veriphone, IPQS (skipped per-provider if its env var is unset)
+- **Telegram** — phone-to-user (skipped if `~/.clank/telegram.session` missing or `TG_APP_ID` unset)
+- **WhatsApp** — phone-to-user (skipped if `~/.clank/whatsapp.db` missing or unpaired)
+- **ignorant** — Instagram / Snapchat / Amazon presence (no auth, but rate-limited)
+- **SEC EDGAR** — full-text filings search (free, no auth)
+
+Total runtime depends on which sources are configured. With nothing set up: ~1.5s (just Local + EDGAR + ignorant). With Telegram + WhatsApp paired and API keys set: ~5-10s.
+
+```
+Deep lookup — +14155552671
+
+1. Local — libphonenumber + spam check
+  +14155552671  FIXED_OR_MOBILE  US  San Francisco, CA
+
+2. Free-tier APIs
+  numverify    skipped — NUMVERIFY_KEY not set
+  veriphone    valid · MOBILE · AT&T Mobility · United States
+  ipqs         valid · MOBILE · AT&T · fraud=12
+
+3. Telegram
+  registered · user_id=123456789
+  name      : Jane Doe
+  username  : @jane_d
+
+4. WhatsApp
+  registered
+  jid          : 14155552671@s.whatsapp.net
+  about        : Hey there! I'm using WhatsApp.
+  devices      : 2
+
+5. Account presence (Instagram / Snapchat / Amazon)
+  instagram  registered
+  snapchat   ? — method broken (Snapchat redesigned web auth ~2024)
+  amazon     ? rate-limited / inconclusive
+
+6. SEC EDGAR full-text
+  0 hits
+
+Took 6.2s
+```
+
 ### `clank imei <15-digit>` — IMEI decoder + TAC database
 
 Pure offline. Validates Luhn checksum and resolves the 8-digit Type Allocation Code to manufacturer/model via an embedded database (`jpanganiban/imei`, ~25,900 device records, Sep 2014 snapshot). Newer devices won't be in the DB — clearly labelled when missing.
