@@ -69,7 +69,7 @@ func Command(args []string) int {
 		printIfSet("  Year        ", r.Device.Year)
 	} else {
 		fmt.Println()
-		fmt.Println(color.YellowString("Device: TAC %s not in embedded database (Sep 2014 snapshot — newer devices unavailable).", r.TAC))
+		fmt.Println(color.YellowString("Device: TAC %s not in embedded database (Mar 2026 snapshot — TAC may be too new or obscure).", r.TAC))
 	}
 	return 0
 }

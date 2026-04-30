@@ -234,7 +234,7 @@ Took 6.2s
 
 ### `clank imei <15-digit>` — IMEI decoder + TAC database
 
-Pure offline. Validates Luhn checksum and resolves the 8-digit Type Allocation Code to manufacturer/model via an embedded database (`jpanganiban/imei`, ~25,900 device records, Sep 2014 snapshot). Newer devices won't be in the DB — clearly labelled when missing.
+Pure offline. Validates Luhn checksum and resolves the 8-digit Type Allocation Code to manufacturer/model + year via an embedded database from [`MoazEb/tac-database`](https://github.com/MoazEb/tac-database) — **254,993 device records, March 2026 snapshot, MIT-licensed**. Covers everything from 2010-era Alcatels through iPhone 15 Pro Max and Galaxy S24+. Newer devices and obscure IoT modules may still be missing — clearly labelled when not found.
 
 ```bash
 clank imei 352099001761481                  # → Alcatel OneTouch 332 (Luhn ✓)
