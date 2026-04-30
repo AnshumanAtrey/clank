@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Verify formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -timeout 5m ./...
+
+      - name: Build
+        run: go build -trimpath -o /tmp/clank .
+
+      - name: Smoke — version
+        run: /tmp/clank --version
+
+      - name: Smoke — local lookup
+        run: /tmp/clank --no-banner --local +14155552671
+
+      - name: Smoke — dorks
+        run: /tmp/clank dorks --json +14155552671 | head -c 500
+
+      - name: Smoke — imei
+        run: /tmp/clank imei 352099001761481

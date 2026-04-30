@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/AnshumanAtrey/clank/internal/api"
+	"github.com/AnshumanAtrey/clank/internal/audit"
 	"github.com/AnshumanAtrey/clank/internal/deep"
+	"github.com/AnshumanAtrey/clank/internal/dorks"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/imei"
@@ -22,6 +24,10 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/whatsapp"
 	"github.com/fatih/color"
 )
+
+// version is overridden at build time via -ldflags="-X main.version=v1.2.3".
+// Set by goreleaser on tagged releases; "dev" for `go install` builds.
+var version = "dev"
 
 const banner = `________  ___       ________  _________  ___  ___
 |\   ____\|\  \     |\   __  \|\   ___  \|\  \|\  \
@@ -35,11 +41,14 @@ const helpText = `clank — phone-number pattern + OSINT lookup CLI
 
 Subcommands:
   clank deep <phone>                    Run ALL sources concurrently — local + APIs + Telegram + WhatsApp + ignorant + EDGAR
+  clank dorks <phone>                   Generate Google-dork URLs across 5 buckets (--open to launch in browser)
   clank imei <15-digit>                 Decode IMEI (Luhn + manufacturer/model from TAC)
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
   clank telegram <login|lookup|logout>  Telegram phone-to-user resolver
   clank ignorant <phone>                Phone presence on Instagram / Snapchat / Amazon
   clank whatsapp <login|lookup|logout>  Phone presence on WhatsApp (paired session)
+  clank history                         Show recent clank invocations (~/.clank/history.jsonl)
+  clank --version                       Print version and exit
 
 Pattern usage:
   clank <pattern>                       Interactive menu (default)
@@ -97,18 +106,25 @@ type opts struct {
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
+		case "--version", "-v", "version":
+			fmt.Println("clank", version)
+			return
 		case "telegram":
-			os.Exit(telegram.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("telegram", os.Args[2:], telegram.Command))
 		case "imei":
-			os.Exit(imei.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("imei", os.Args[2:], imei.Command))
 		case "edgar":
-			os.Exit(edgar.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("edgar", os.Args[2:], edgar.Command))
 		case "ignorant":
-			os.Exit(ignorant.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("ignorant", os.Args[2:], ignorant.Command))
 		case "whatsapp":
-			os.Exit(whatsapp.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("whatsapp", os.Args[2:], whatsapp.Command))
 		case "deep":
-			os.Exit(deep.Command(os.Args[2:]))
+			os.Exit(audit.Wrap("deep", os.Args[2:], deep.Command))
+		case "dorks":
+			os.Exit(audit.Wrap("dorks", os.Args[2:], dorks.Command))
+		case "history":
+			os.Exit(audit.Command(os.Args[2:]))
 		}
 	}
 

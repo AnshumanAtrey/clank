@@ -1,0 +1,108 @@
+version: 2
+
+project_name: clank
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: clank
+    main: .
+    binary: clank
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: clank
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - 'merge conflict'
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+
+release:
+  github:
+    owner: AnshumanAtrey
+    name: clank
+  draft: false
+  prerelease: auto
+  name_template: 'clank {{ .Tag }}'
+  header: |
+    # clank {{ .Tag }}
+
+    Phone-number reconnaissance CLI. Pre-built binaries below — no Go install required.
+
+    Or via Homebrew (after the tap is published):
+    ```
+    brew install AnshumanAtrey/tap/clank
+    ```
+
+  footer: |
+    ---
+
+    **Verify** the binary checksum against `checksums.txt` before running.
+
+    Full changelog: https://github.com/AnshumanAtrey/clank/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+brews:
+  - name: clank
+    repository:
+      owner: AnshumanAtrey
+      name: homebrew-tap
+      branch: main
+      token: '{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}'
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: 'brew formula update for {{ .ProjectName }} version {{ .Tag }}'
+    homepage: 'https://github.com/AnshumanAtrey/clank'
+    description: 'Phone-number reconnaissance CLI — pattern combinator + multi-source OSINT (libphonenumber, free APIs, Telegram, WhatsApp, IMEI, SEC EDGAR).'
+    license: MIT
+    skip_upload: auto
+    test: |
+      system "#{bin}/clank --version"
+    install: |
+      bin.install "clank"

@@ -34,17 +34,44 @@ NUMBER         VALID  TYPE    REGION  CARRIER      GEO    TZ             SPAM
 
 ## Install
 
+**Pre-built binaries** for Linux, macOS, and Windows (amd64 + arm64) are published to [GitHub Releases](https://github.com/AnshumanAtrey/clank/releases) on every tag — no Go toolchain required. Grab the archive for your platform, extract, and put `clank` on your `PATH`.
+
+**Homebrew** (after the tap is set up — see *Maintainer notes* below):
+
+```bash
+brew install AnshumanAtrey/tap/clank
+```
+
+**Go install**:
+
 ```bash
 go install github.com/AnshumanAtrey/clank@latest
 ```
 
-Or build from source:
+**Build from source**:
 
 ```bash
 git clone https://github.com/AnshumanAtrey/clank.git
 cd clank
 go build -o clank .
 ```
+
+Verify the install:
+
+```bash
+clank --version
+```
+
+### Maintainer notes — Homebrew tap setup (one-time)
+
+To enable `brew install AnshumanAtrey/tap/clank`, the maintainer needs to:
+
+1. Create a public empty repo `AnshumanAtrey/homebrew-tap`.
+2. Generate a Personal Access Token with `repo` scope.
+3. Add the token as `HOMEBREW_TAP_GITHUB_TOKEN` in this repo's Actions secrets.
+4. Tag a release: `git tag v0.1.0 && git push origin v0.1.0`.
+
+GoReleaser (configured in `.goreleaser.yaml`) will then build cross-platform binaries, attach them to the GitHub Release, and auto-publish a Ruby formula to the tap repo. Subsequent `git tag vX.Y.Z` pushes update everything automatically.
 
 ## Usage
 
@@ -114,6 +141,41 @@ clank/
 ```
 
 ## Subcommands
+
+### `clank dorks <phone>` — Google-dork URL generator (PhoneInfoga's killer feature)
+
+Generates Google search URLs across 5 buckets — one per platform/site, multiplied by every phone-format variant — to surface a number's footprint. No auth, no API, pure string templating. Roughly 30-160 URLs depending on which buckets you keep.
+
+```bash
+clank dorks +14155552671                              # print all (~160 URLs)
+clank dorks --bucket social,reputation +14155552671   # subset
+clank dorks --open --max 10 +14155552671              # launch first 10 in browser
+clank dorks --json +14155552671 | jq                  # structured
+```
+
+Buckets:
+- **social** — Facebook, LinkedIn, X/Twitter, Instagram, VK, Reddit, GitHub, Medium
+- **disposable** — TextNow, TextFree, Hushed, Burner, Google Voice, Sideline
+- **reputation** — shouldianswer.com, 800notes, tellows, mrnumber, whocallsme, Truecaller, Sync.me
+- **individuals** — Whitepages, 411, AnyWho, Spokeo, BeenVerified, Radaris, TruePeopleSearch
+- **general** — quoted-number Google searches, no `site:` filter
+
+Each bucket × phone-variant combo emits one URL. Phone variants come from libphonenumber: E.164 (`+14155552671`), international (`+1 415-555-2671`), national (`(415) 555-2671`), digits-only (`14155552671`, `4155552671`).
+
+### `clank history` — see what you've looked up
+
+Every clank invocation appends one line to `~/.clank/history.jsonl` (only the first phone-shaped positional arg — never API keys or full args). Read it back with:
+
+```bash
+clank history                # last 20 entries
+clank history --tail 50      # last 50
+clank history --grep +91     # filter by substring (matches Cmd or Phone)
+clank history --json | jq    # structured
+clank history --path         # print path to history file
+clank history --clear        # wipe history (with confirmation)
+```
+
+Set `CLANK_NO_AUDIT=1` in your env to disable history logging entirely.
 
 ### `clank deep <phone>` — run every source at once
 
