@@ -98,8 +98,8 @@ brews:
       name: goreleaserbot
       email: bot@goreleaser.com
     commit_msg_template: 'brew formula update for {{ .ProjectName }} version {{ .Tag }}'
-    homepage: 'https://github.com/AnshumanAtrey/clank'
-    description: 'Phone-number reconnaissance CLI — pattern combinator + multi-source OSINT (libphonenumber, free APIs, Telegram, WhatsApp, IMEI, SEC EDGAR).'
+    homepage: 'https://atrey.dev'
+    description: 'Phone-number reconnaissance CLI — pattern combinator + multi-source OSINT (libphonenumber, free APIs, Telegram, WhatsApp, IMEI, SEC EDGAR). By Anshuman Atrey · build@atrey.dev'
     license: MIT
     skip_upload: auto
     test: |

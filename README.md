@@ -275,7 +275,7 @@ clank edgar --forms 10-K --hits 10 "Apple Park Way"  # filter by form type
 clank edgar --json --hits 20 "<your-phone>"         # JSON for jq
 ```
 
-Optional: set `CLANK_EDGAR_UA="Your Name your-email@example.com"` to comply with [SEC's user-agent policy](https://www.sec.gov/os/accessing-edgar-data) when running at any volume.
+Optional: set `CLANK_EDGAR_UA="Your Name your-email@example.com"` to override the User-Agent and comply with [SEC's user-agent policy](https://www.sec.gov/os/accessing-edgar-data) when running at any volume. Default: `clank-osint build@atrey.dev`.
 
 ### `clank telegram <subcommand>` — Telegram phone-to-user
 
@@ -358,6 +358,16 @@ See `research/` for the full landscape — 10 markdown files mapping the OSINT-p
 
 This tool is for legitimate use — fraud investigation, journalism, security research, knowing what's online about your own number. Comply with applicable laws and the providers' Terms of Service.
 
+## Author
+
+Built by **Anshuman Atrey** — software engineer, hackathon winner, builder of weird tools.
+
+- Website: <https://atrey.dev>
+- LinkedIn: <https://linkedin.com/in/anshumanatrey/>
+- Email: <build@atrey.dev>
+
+Bugs, ideas, war stories from your own scans — drop me a line. PRs welcome.
+
 ## License
 
-MIT
+MIT — © Anshuman Atrey · <https://atrey.dev>

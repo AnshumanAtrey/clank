@@ -14,7 +14,7 @@ import (
 
 const (
 	endpoint        = "https://efts.sec.gov/LATEST/search-index"
-	defaultUA       = "clank-osint anonymous@clank.local"
+	defaultUA       = "clank-osint build@atrey.dev"
 	envUserAgentVar = "CLANK_EDGAR_UA"
 )
 

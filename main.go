@@ -88,6 +88,9 @@ Examples:
   clank --provider ipqs +14155552671    Single number, IPQS fraud score
   clank --gen 918115605xx               Just dump 100 combinations to stdout
   clank --json --local +14155552671     JSON output for piping to jq
+
+Author:
+  Anshuman Atrey  ·  https://atrey.dev  ·  https://linkedin.com/in/anshumanatrey/  ·  build@atrey.dev
 `
 
 type opts struct {
@@ -110,6 +113,7 @@ func main() {
 		switch os.Args[1] {
 		case "--version", "-v", "version":
 			fmt.Println("clank", version)
+			fmt.Println("by Anshuman Atrey · https://atrey.dev · build@atrey.dev")
 			return
 		case "telegram":
 			os.Exit(audit.Wrap("telegram", os.Args[2:], telegram.Command))
