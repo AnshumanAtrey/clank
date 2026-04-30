@@ -20,6 +20,7 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/imei"
 	"github.com/AnshumanAtrey/clank/internal/local"
 	"github.com/AnshumanAtrey/clank/internal/pattern"
+	"github.com/AnshumanAtrey/clank/internal/scan"
 	"github.com/AnshumanAtrey/clank/internal/telegram"
 	"github.com/AnshumanAtrey/clank/internal/whatsapp"
 	"github.com/fatih/color"
@@ -41,6 +42,7 @@ const helpText = `clank — phone-number pattern + OSINT lookup CLI
 
 Subcommands:
   clank deep <phone>                    Run ALL sources concurrently — local + APIs + Telegram + WhatsApp + ignorant + EDGAR
+  clank scan <pattern>                  Run 'deep' over each pattern combo with rate-limit-aware sleeps
   clank dorks <phone>                   Generate Google-dork URLs across 5 buckets (--open to launch in browser)
   clank imei <15-digit>                 Decode IMEI (Luhn + manufacturer/model from TAC)
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
@@ -121,6 +123,8 @@ func main() {
 			os.Exit(audit.Wrap("whatsapp", os.Args[2:], whatsapp.Command))
 		case "deep":
 			os.Exit(audit.Wrap("deep", os.Args[2:], deep.Command))
+		case "scan":
+			os.Exit(audit.Wrap("scan", os.Args[2:], scan.Command))
 		case "dorks":
 			os.Exit(audit.Wrap("dorks", os.Args[2:], dorks.Command))
 		case "history":

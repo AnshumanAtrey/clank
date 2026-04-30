@@ -142,6 +142,29 @@ clank/
 
 ## Subcommands
 
+### `clank scan <pattern>` — bulk `deep` over every candidate
+
+The OG `+918115605xxx` workflow. Take a pattern (or list of phones), generate every candidate, filter early via libphonenumber to drop invalid numbers, then run `clank deep` over each survivor with rate-limit-aware sleeps so messenger lookups don't trigger bans. Each completed result is checkpointed to JSONL so a crash mid-scan never loses work.
+
+```bash
+clank scan +918115605xxx --region IN              # default: 30 candidates, 8s sleep, full deep
+clank scan --max 100 --quick +918115605xxx        # offline + APIs + EDGAR; no messengers; no sleep
+clank scan --workers 5 --quick +918115605xxx      # parallel quick scan
+clank scan --input targets.txt --quick            # read phones from file
+cat numbers.txt | clank scan --input - --json     # stdin → JSON output
+clank scan --resume --out scan.jsonl +918115605xxx  # skip phones already done
+clank scan --sample stride --max 50 +91811xxxxxx  # spread samples across the range
+```
+
+Defaults are deliberately conservative:
+- `--max 30` — 30 candidates is safe under WhatsApp's ~50/min ban threshold even at 0s sleep.
+- `--sleep 8s` — total ~6/min, well under all messenger limits.
+- `--workers 1` — sequential, deterministic, predictable rate.
+
+`--quick` flips into safe-bulk mode: skip messengers entirely (no ban risk), default sleep to 0, recommend `--workers 5+` for throughput. Use it for offline-only sweeps over hundreds of candidates.
+
+Results are scored by enrichment hits (WhatsApp + Telegram count 2-3 each, ignorant/EDGAR/API valid counts 1-2 each, spam-flag subtracts 2) and ranked descending. Top-N shown in the human table; full set in `--json` and the JSONL checkpoint.
+
 ### `clank dorks <phone>` — Google-dork URL generator (PhoneInfoga's killer feature)
 
 Generates Google search URLs across 5 buckets — one per platform/site, multiplied by every phone-format variant — to surface a number's footprint. No auth, no API, pure string templating. Roughly 30-160 URLs depending on which buckets you keep.
