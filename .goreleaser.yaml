@@ -89,6 +89,11 @@ release:
 
 brews:
   - name: clank
+    # Skip the entire brew pipe when no tap-write token is provided (token
+    # template below would otherwise 401 against the tap repo). Setting the
+    # HOMEBREW_TAP_GITHUB_TOKEN secret + creating AnshumanAtrey/homebrew-tap
+    # auto-flips this off — no code change needed. Tracked in issue #3.
+    disable: '{{ if eq .Env.HOMEBREW_TAP_GITHUB_TOKEN "" }}true{{ end }}'
     repository:
       owner: AnshumanAtrey
       name: homebrew-tap

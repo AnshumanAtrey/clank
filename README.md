@@ -64,14 +64,14 @@ clank --version
 
 ### Maintainer notes — Homebrew tap setup (one-time)
 
-To enable `brew install AnshumanAtrey/tap/clank`, the maintainer needs to:
+`brew install AnshumanAtrey/tap/clank` is **not yet wired up** — tracked in [issue #3](https://github.com/AnshumanAtrey/clank/issues/3). v0.1.0 ships via GitHub Releases only. To enable Homebrew on a future tag:
 
 1. Create a public empty repo `AnshumanAtrey/homebrew-tap`.
-2. Generate a Personal Access Token with `repo` scope.
+2. Generate a Personal Access Token with `repo` scope (or fine-grained with `Contents: read+write` on the tap).
 3. Add the token as `HOMEBREW_TAP_GITHUB_TOKEN` in this repo's Actions secrets.
-4. Tag a release: `git tag v0.1.0 && git push origin v0.1.0`.
+4. Tag the next release: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`.
 
-GoReleaser (configured in `.goreleaser.yaml`) will then build cross-platform binaries, attach them to the GitHub Release, and auto-publish a Ruby formula to the tap repo. Subsequent `git tag vX.Y.Z` pushes update everything automatically.
+GoReleaser (configured in `.goreleaser.yaml`) builds cross-platform binaries and attaches them to the GitHub Release. The brew pipe is currently auto-skipped via `disable:` template when the token secret is empty — once the secret is set, it re-activates with no config change and starts publishing the Ruby formula to the tap repo. Subsequent `git tag vX.Y.Z` pushes update everything automatically.
 
 ## Usage
 
