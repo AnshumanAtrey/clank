@@ -1,6 +1,6 @@
 # 05 — Website Copy (clank.atrey.dev)
 
-> Canonical copywriting for the landing page. Written to be dropped into the Astro site at `clank-web` (see `06-website-tech.md`). Tight, direct, terminal-aesthetic. No marketing fluff.
+> Canonical copywriting for the landing page. Written to be dropped into the Astro site at `clank/website/` (see `06-website-tech.md` for stack + `07-repo-architecture.md` for the same-repo decision). Tight, direct, terminal-aesthetic. No marketing fluff.
 
 ## Page architecture (single page, scroll-driven)
 

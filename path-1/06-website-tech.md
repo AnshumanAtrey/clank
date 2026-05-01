@@ -22,10 +22,13 @@
 - Build time: ~3-8s for a single-page site
 - Bundle: <20KB total client JS for our use case
 
-## Project structure (`clank-web` repo)
+## Project structure — `clank/website/` (mono with parent repo)
+
+The website lives inside the `clank` repo at `website/`, NOT in a separate repo. A stub `website/go.mod` excludes it from the parent Go module so `go install`, brew, and any future npm path don't pick it up. See [`07-repo-architecture.md`](./07-repo-architecture.md) for the full reasoning.
 
 ```
-clank-web/
+clank/website/
+├── go.mod                               ← STUB → excludes from parent Go module
 ├── src/
 │   ├── pages/
 │   │   └── index.astro                  ← single landing page
@@ -43,7 +46,7 @@ clank-web/
 │   ├── layouts/
 │   │   └── Base.astro                   ← html shell, meta tags
 │   └── lib/
-│       └── copy.ts                      ← optional sync from path-1/05-website-copy.md
+│       └── copy.ts                      ← optional read from ../path-1/05-website-copy.md
 ├── public/
 │   ├── casts/
 │   │   ├── deep.cast                    ← clank deep lookup recording
@@ -55,10 +58,19 @@ clank-web/
 ├── astro.config.mjs
 ├── package.json
 ├── tsconfig.json
-├── wrangler.toml                        ← optional, for Cloudflare Pages
-├── README.md                            ← "Marketing site for github.com/AnshumanAtrey/clank"
-└── LICENSE                              ← MIT
+├── README.md                            ← "Marketing site — see ../README.md for the CLI"
+└── .gitignore                           ← node_modules/, dist/, .astro/
 ```
+
+The `website/go.mod` stub (the magic 3 lines):
+```
+// Stub go.mod — excludes this dir from parent Go module.
+module github.com/AnshumanAtrey/clank/website
+
+go 1.25
+```
+
+Bonus: copywriting source-of-truth at `../path-1/05-website-copy.md` is now a **relative-path read away** instead of a cross-repo sync. A `lib/copy.ts` at build time can `import` and use the MD directly via Astro's `getCollection`.
 
 ## Animation strategy — three layers
 
@@ -150,11 +162,13 @@ Self-host the font for performance + privacy (no Google Fonts external requests)
 
 ### Local dev
 ```bash
-git clone github.com/AnshumanAtrey/clank-web
-cd clank-web
+git clone github.com/AnshumanAtrey/clank
+cd clank/website
 npm install
 npm run dev    # → http://localhost:4321
 ```
+
+(If you're already in the clank repo, just `cd website && npm install && npm run dev`.)
 
 ### astro.config.mjs
 ```js
@@ -170,18 +184,20 @@ export default defineConfig({
 });
 ```
 
-### Cloudflare Pages setup (one-time)
+### Cloudflare Pages setup (one-time, monorepo mode)
 
 1. Cloudflare dashboard → Workers & Pages → Create application → Pages → Connect to Git
-2. Select `AnshumanAtrey/clank-web`
+2. Select `AnshumanAtrey/clank` (the same repo as the CLI)
 3. Build settings:
    - Framework preset: **Astro**
-   - Build command: `npm run build`
+   - Build command: `npm install && npm run build`
    - Build output: `dist`
-   - Root directory: `/` (default)
+   - **Root directory: `website`** ← critical — tells Cloudflare to treat `website/` as the project root
    - Node version: 20+ (set via `NODE_VERSION` env var if needed)
 4. Save → first deploy runs (~30s)
-5. Project URL: `clank-web.pages.dev`
+5. Project URL: `clank.pages.dev` (or whatever Cloudflare assigns)
+
+Cloudflare diffs paths on push — only website changes trigger a rebuild. CLI-only commits don't waste a Pages build.
 
 ### Custom domain — clank.atrey.dev
 
@@ -189,14 +205,28 @@ In Cloudflare Pages project → Custom domains → Set up a domain:
 - Enter `clank.atrey.dev`
 - Cloudflare will detect the parent zone (`atrey.dev`)
   - **If `atrey.dev` is on Cloudflare DNS**: it auto-creates the CNAME for you
-  - **If `atrey.dev` is on another DNS**: it shows you the CNAME record to add (`clank` → `clank-web.pages.dev`)
+  - **If `atrey.dev` is on another DNS**: it shows you the CNAME record to add (`clank` → `<your-project-name>.pages.dev`, e.g. `clank.pages.dev`)
 - SSL provisions in 1-15 min
 - Done
 
 **Source**: [Cloudflare Pages custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/), [Astro on Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-an-astro-site/), [Beginner's guide to Astro + Cloudflare](https://dev.to/warish/astro-cloudflare-pages-a-beginners-guide-to-fast-and-easy-deployment-558e)
 
 ### CI/CD via GitHub
-Cloudflare Pages auto-builds on every push to `main` of `clank-web`. Preview deployments for PRs. Zero workflow file needed in the website repo (Cloudflare handles it).
+Cloudflare Pages auto-builds on every push to `main` that touches `website/**`. Preview deployments for PRs. Zero new workflow file needed.
+
+You should also add path-filtering to the existing Go CI workflow so website-only changes don't trigger Go tests:
+
+```yaml
+# .github/workflows/ci.yml
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/ci.yml'
+```
 
 If you want preview-deploy protection (private previews behind Cloudflare Access), see [Aaron Czichon's guide](https://aaronczichon.de/blog/28-cloudflare-pages-astro-github/).
 

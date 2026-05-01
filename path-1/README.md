@@ -13,7 +13,7 @@ This is the entire launch + website + community playbook for clank v0.1.0. **18 
 | [`01-launch-strategy.md`](./01-launch-strategy.md) | 14-day phased rollout. Why LinkedIn → Reddit → HN → PH order. Failure-mode planning. Success metrics. |
 | [`02-platforms.md`](./02-platforms.md) | All 14 launch platforms ranked by ROI. Submission rules, optimal timing, audience fit per platform. Backed by 2026 research. |
 | [`03-persuasion.md`](./03-persuasion.md) | Cialdini's 7 principles applied to clank. Hook patterns. Dark-pattern catalog with reasons each is a trap. Reply scripts. |
-| [`07-repo-architecture.md`](./07-repo-architecture.md) | Should the website live in clank's repo or a separate one? Decision matrix + recommendation: **separate repo `clank-web`**. |
+| [`07-repo-architecture.md`](./07-repo-architecture.md) | Should the website live in clank's repo or a separate one? Decision matrix + recommendation: **same repo at `clank/website/`** with a 3-line `go.mod` stub that excludes it from package-manager downloads. |
 
 ### Ready-to-paste post drafts
 
@@ -60,7 +60,7 @@ If you have a full evening (~2 hours):
 
 ## Decisions already made (so you don't have to re-litigate)
 
-1. **Website lives in a separate repo** — `AnshumanAtrey/clank-web` (see `07-repo-architecture.md`)
+1. **Website lives in `clank/website/` inside the same repo** — with a 3-line `website/go.mod` stub that excludes it from `go install` / brew / future npm paths. Cloudflare Pages reads from the `website/` subdirectory natively. See `07-repo-architecture.md` for the full reasoning. (Earlier draft recommended a separate `clank-web` repo — revised after deeper analysis. Mono is strictly better once you know the stub trick.)
 2. **Stack is Astro + Cloudflare Pages** (see `06-website-tech.md`)
 3. **Domain is `clank.atrey.dev`** via Cloudflare Pages custom domain
 4. **Launch order is LinkedIn → Reddit → HN → DEV → Peerlist → ProductHunt** (over 14 days)
@@ -77,7 +77,7 @@ If you have a full evening (~2 hours):
 
 ## How to use this when you actually launch
 
-1. **2 weeks before launch**: read everything once. Schedule the launch day. Build the website (`clank-web` repo).
+1. **2 weeks before launch**: read everything once. Schedule the launch day. Build the website in `clank/website/` (mono with the CLI repo — see `07-repo-architecture.md`).
 2. **1 week before**: soft-share to ~10 contacts. Final QA on website + GH repo. Charge laptop.
 3. **Launch day Tuesday**: follow `08-launch-day.md` hour by hour. Don't deviate.
 4. **Week +1**: amplification (Peerlist Mon, PH Tue, DEV.to Fri).
