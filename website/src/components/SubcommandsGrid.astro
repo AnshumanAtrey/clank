@@ -1,40 +1,264 @@
 ---
-const subcommands = [
-  { name: 'scan', desc: 'Bulk lookup over a pattern with rate-limit-aware sleeps', status: 'works' },
-  { name: 'deep', desc: 'Single number, all 6 sources concurrently', status: 'works' },
-  { name: 'dorks', desc: 'Generate ~160 Google-dork URLs across 5 buckets', status: 'works' },
-  { name: 'imei', desc: 'Luhn check + 254,993-device TAC lookup (Mar 2026)', status: 'works' },
-  { name: 'edgar', desc: 'SEC EDGAR full-text filings search', status: 'works' },
-  { name: 'telegram', desc: 'MTProto phone-to-user via gotd/td', status: 'session' },
-  { name: 'whatsapp', desc: 'WhatsApp via whatsmeow (QR-pair)', status: 'session' },
-  { name: 'ignorant', desc: 'Instagram / Snapchat / Amazon presence', status: 'partial' },
-  { name: 'history', desc: 'Audit log of every clank invocation', status: 'works' },
-  { name: '--version', desc: 'Print version + author', status: 'works' },
-];
+// Build-time colorize — same marker syntax as Hero. All demos render at build
+// time with span classes baked in. Zero runtime templating cost.
+function colorize(text: string): string {
+  return text
+    .replace(/§a:([^§]+)§/g, '<span class="accent">$1</span>')
+    .replace(/§w:([^§]+)§/g, '<span class="warn">$1</span>')
+    .replace(/§d:([^§]+)§/g, '<span class="danger">$1</span>')
+    .replace(/§m:([^§]+)§/g, '<span class="dim">$1</span>')
+    .replace(/§b:([^§]+)§/g, '<span class="bright">$1</span>');
+}
 
-const statusLabel = {
-  works: { text: 'works', cls: 'st-ok' },
-  session: { text: 'needs session', cls: 'st-warn' },
-  partial: { text: 'partial — Snapchat broken', cls: 'st-broken' },
-};
+const subs = [
+  {
+    id: 'scan',
+    name: 'clank scan',
+    desc: 'Bulk lookup over a pattern with rate-limit-aware sleeps',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank scan§ --quick --max 5 +918115605xxx --region IN
+
+§b:Generating candidates§... §a:1000§ from pattern
+libphonenumber filter: §a:1000§ valid (§m:100%§)
+Sampling §a:5§ candidates (§m:strategy: head§)
+
+§m:[1/5]§ +918115605000  scoring §a:5§
+§m:[2/5]§ +918115605001  scoring §m:0§
+§m:[3/5]§ +918115605002  scoring §a:3§
+§m:[4/5]§ +918115605003  scoring §m:0§
+§m:[5/5]§ +918115605004  scoring §a:4§
+
+§b:Top 5 by enrichment hits:§
+§m:RANK  PHONE          SCORE  WHATSAPP   TELEGRAM   IGNORANT  EDGAR§
+   §a:1§  +918115605000  §a:    5§  §a:✓ biz§      §a:@user1§     §a:ig§        §a:2§
+   §a:2§  +918115605004  §a:    4§  §a:✓ biz§      §a:@user2§     §a:ig§        §m:0§
+   §a:3§  +918115605002  §a:    3§  §a:✓§          §m:-§          §m:-§         §m:0§
+   §m:4§  +918115605001  §m:    0§  §d:✗§          §m:-§          §m:-§         §m:0§
+   §m:5§  +918115605003  §m:    0§  §d:✗§          §m:-§          §m:-§         §m:0§
+
+§m:Took 31s · checkpoint at ~/.clank/scan-1714565600.jsonl§`,
+  },
+  {
+    id: 'deep',
+    name: 'clank deep',
+    desc: 'Single number, all 6 sources concurrently',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank deep§ +14155552671
+
+§b:Deep lookup§ — +14155552671
+
+§m:1.§ §b:Local§ — libphonenumber + spam check
+  +14155552671  §a:FIXED_OR_MOBILE§  §a:US§  San Francisco, CA
+
+§m:2.§ §b:Free APIs§
+  §m:numverify§    §w:skipped§ — NUMVERIFY_KEY not set
+  §m:veriphone§    §a:valid§ · MOBILE · AT&T · United States
+  §m:ipqs§         §a:valid§ · MOBILE · AT&T · §m:fraud=§§a:12§
+
+§m:3.§ §b:Telegram§
+  §a:registered§ · §a:@jane_d§ · Jane Doe
+
+§m:4.§ §b:WhatsApp§
+  §a:registered§ · jid=14155552671§m:@s.whatsapp.net§
+
+§m:5.§ §b:Account presence§
+  §m:instagram§  §a:registered§
+  §m:snapchat§   §w:?§ — method broken
+  §m:amazon§     §w:?§ rate-limited / inconclusive
+
+§m:6.§ §b:SEC EDGAR full-text§
+  §m:0§ hits
+
+§m:Took 6.2s§`,
+  },
+  {
+    id: 'dorks',
+    name: 'clank dorks',
+    desc: 'Generate ~160 Google-dork URLs across 5 buckets',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank dorks§ --bucket social +14155552671
+
+§b:Generating Google-dork URLs§ (bucket: §a:social§)
+Variants: §m:E.164, INTERNATIONAL, NATIONAL, digits-only§
+
+§m:google.com/search?q=§§a:site:facebook.com§ §m:%22%2B14155552671%22§
+§m:google.com/search?q=§§a:site:facebook.com§ §m:%22(415)+555-2671%22§
+§m:google.com/search?q=§§a:site:facebook.com§ §m:%2214155552671%22§
+§m:google.com/search?q=§§a:site:linkedin.com§ §m:%22%2B14155552671%22§
+§m:google.com/search?q=§§a:site:linkedin.com§ §m:%22(415)+555-2671%22§
+§m:google.com/search?q=§§a:site:linkedin.com§ §m:%2214155552671%22§
+§m:google.com/search?q=§§a:site:twitter.com§ §m:%22%2B14155552671%22§
+§m:google.com/search?q=§§a:site:instagram.com§ §m:%22%2B14155552671%22§
+§m:google.com/search?q=§§a:site:reddit.com§ §m:%22%2B14155552671%22§
+§m:google.com/search?q=§§a:site:github.com§ §m:%2214155552671%22§
+
+§a:24§ URLs total · pass §b:--open§ to launch in browser
+§m:For full ~160 URLs across 5 buckets, omit --bucket§`,
+  },
+  {
+    id: 'imei',
+    name: 'clank imei',
+    desc: 'Luhn check + 254,993-device TAC lookup (Mar 2026)',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank imei§ 352099001761481
+
+§b:IMEI:§ §a:352099001761481§
+
+Luhn check    §a:✓ valid§
+TAC           §a:35209900§
+Manufacturer  §b:Alcatel§
+Model         §b:OneTouch 332§
+Year          §a:2010§
+Form factor   Bar
+GSM bands     §m:900/1800/1900 MHz§
+
+§m:Source: MoazEb/tac-database (March 2026 snapshot, 254,993 entries)§`,
+  },
+  {
+    id: 'edgar',
+    name: 'clank edgar',
+    desc: 'SEC EDGAR full-text filings search',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank edgar§ --hits 5 "(415) 421-7900"
+
+§b:SEC EDGAR full-text search§
+Query: §a:"(415) 421-7900"§
+Hits: §a:5§ of §a:453§
+
+§m:[1]§ §b:WILLIAMS-SONOMA INC§ · CIK §a:0000719955§ · §a:10-K§ · §m:2024-03-21§
+    §m:https://sec.gov/Archives/edgar/data/719955/...§
+§m:[2]§ §b:WILLIAMS-SONOMA INC§ · CIK §a:0000719955§ · §a:10-Q§ · §m:2024-08-29§
+§m:[3]§ §b:WILLIAMS-SONOMA INC§ · CIK §a:0000719955§ · §a:DEF 14A§ · §m:2024-04-08§
+§m:[4]§ §b:WILLIAMS-SONOMA INC§ · CIK §a:0000719955§ · §a:8-K§ · §m:2024-02-15§
+§m:[5]§ §b:WILLIAMS-SONOMA INC§ · CIK §a:0000719955§ · §a:10-K§ · §m:2023-03-30§
+
+§m:Pivot:§ §b:WILLIAMS-SONOMA INC§ §m:(CIK 0000719955), San Francisco CA§`,
+  },
+  {
+    id: 'telegram',
+    name: 'clank telegram',
+    desc: 'MTProto phone-to-user via gotd/td',
+    status: { text: 'needs session', cls: 'st-warn' },
+    demo: `§a:$ §§b:clank telegram lookup§ +14155552671
+
+§b:Telegram MTProto lookup§ via gotd/td
+
+User ID     §a:123456789§
+First name  §b:Jane§
+Last name   §b:Doe§
+Username    §a:@jane_d§
+Phone       +14155552671
+Premium     §m:no§
+Verified    §m:no§
+Bot         §m:no§
+Photo       §a:has profile picture§
+Restricted  §m:no§
+
+§m:Session: ~/.clank/telegram.session (last refreshed 2 days ago)§`,
+  },
+  {
+    id: 'whatsapp',
+    name: 'clank whatsapp',
+    desc: 'WhatsApp via whatsmeow (QR-pair)',
+    status: { text: 'needs session', cls: 'st-warn' },
+    demo: `§a:$ §§b:clank whatsapp lookup§ +14155552671
+
+§b:WhatsApp via whatsmeow§ (paired session)
+
+JID                §a:14155552671@s.whatsapp.net§
+Registered         §a:✓ yes§
+Verified business  §b:Acme Coffee Shop§
+About              §m:"Hey there! I'm using WhatsApp."§
+Profile picture    §a:present§
+Status privacy     §m:contacts§
+Devices            §a:2§
+
+§m:Session: ~/.clank/whatsapp.db (paired 14 days ago)§
+§w:Re-pair before day 14 — WhatsApp unlinks idle companions.§`,
+  },
+  {
+    id: 'ignorant',
+    name: 'clank ignorant',
+    desc: 'Instagram / Snapchat / Amazon presence',
+    status: { text: 'partial — Snapchat broken', cls: 'st-broken' },
+    demo: `§a:$ §§b:clank ignorant§ +14155552671
+
+§b:Phone presence check§ (3 platforms, parallel)
+
+instagram   §a:✓ registered§
+snapchat    §w:?§ method broken (Snapchat redesigned web auth ~2024)
+amazon      §w:?§ rate-limited / inconclusive — try with proxy
+
+§a:1§ conclusive · §w:2§ rate-limited/broken · §m:0§ errors
+§m:Took 4.1s§`,
+  },
+  {
+    id: 'history',
+    name: 'clank history',
+    desc: 'Audit log of every clank invocation',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank history§ --tail 5
+
+§b:Last 5 invocations§ from §m:~/.clank/history.jsonl§
+
+§m:2026-04-30 19:45:23§  §b:scan§      +918115605xxx  §m:(took 31s)§
+§m:2026-04-30 19:42:01§  §b:deep§      +14155552671   §m:(took 6.2s)§
+§m:2026-04-30 18:11:15§  §b:dorks§     +14155552671   §m:(24 URLs)§
+§m:2026-04-30 17:58:42§  §b:imei§      352099001761481
+§m:2026-04-30 16:30:01§  §b:--version§
+
+§m:Set CLANK_NO_AUDIT=1 to disable history logging.§`,
+  },
+  {
+    id: 'version',
+    name: 'clank --version',
+    desc: 'Print version + author',
+    status: { text: 'works', cls: 'st-ok' },
+    demo: `§a:$ §§b:clank --version§
+
+§b:clank v0.1.0§
+§m:by Anshuman Atrey · https://atrey.dev · build@atrey.dev§
+
+§m:Built March 2026 · MIT License · single 48 MB static binary§`,
+  },
+];
 ---
 
 <section class="subs">
   <div class="container">
-    <h2>every subcommand. no paywalls.</h2>
+    <h2>every subcommand. <span class="text-dim">click to see it run.</span></h2>
+
     <div class="grid">
-      {subcommands.map((sub) => {
-        const meta = statusLabel[sub.status as keyof typeof statusLabel];
-        return (
-          <article class="card">
-            <div class="card-head">
-              <code class="name">clank {sub.name}</code>
-              <span class={`status ${meta.cls}`}>{meta.text}</span>
+      {subs.map((sub, i) => (
+        <button
+          class={`card ${i === 0 ? 'active' : ''}`}
+          data-sub={sub.id}
+          type="button"
+          aria-pressed={i === 0 ? 'true' : 'false'}
+        >
+          <div class="card-head">
+            <code class="name">{sub.name}</code>
+            <span class={`status ${sub.status.cls}`}>{sub.status.text}</span>
+          </div>
+          <p class="desc">{sub.desc}</p>
+        </button>
+      ))}
+    </div>
+
+    <div class="demos">
+      {subs.map((sub, i) => (
+        <div class={`demo ${i === 0 ? 'active' : ''}`} data-demo={sub.id}>
+          <div class="terminal">
+            <div class="terminal-header">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-title">~/clank</span>
             </div>
-            <p class="desc">{sub.desc}</p>
-          </article>
-        );
-      })}
+            <pre class="terminal-body" set:html={colorize(sub.demo)} />
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 </section>
@@ -42,8 +266,8 @@ const statusLabel = {
 <style>
   .grid {
     display: grid;
-    gap: 0.75rem;
-    margin-top: var(--space-md);
+    gap: 0.6rem;
+    margin: var(--space-md) 0 var(--space-md);
     grid-template-columns: 1fr;
   }
   @media (min-width: 600px) {
@@ -55,26 +279,39 @@ const statusLabel = {
     background: var(--bg-soft);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 0.875rem;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-mono);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--fg-dim);
+  }
+  .card.active {
+    border-color: var(--accent);
+    background: var(--bg-card);
   }
   .card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
   }
   .name {
     background: transparent;
     padding: 0;
     color: var(--fg-bright);
     font-weight: 600;
+    font-size: 0.875rem;
   }
   .status {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.45rem;
     border-radius: 3px;
     border: 1px solid var(--border);
+    white-space: nowrap;
   }
   .st-ok {
     color: var(--accent);
@@ -90,7 +327,69 @@ const statusLabel = {
   }
   .desc {
     color: var(--fg);
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     margin: 0;
+    line-height: 1.4;
+  }
+
+  .demos {
+    margin-top: 0.5rem;
+  }
+  .demo {
+    display: none;
+  }
+  .demo.active {
+    display: block;
+    animation: fadeIn 0.18s ease-out;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .terminal-body {
+    margin: 0;
+    font-size: 0.85rem;
+    min-height: 16rem;
+  }
+  @media (max-width: 600px) {
+    .terminal-body {
+      font-size: 0.74rem;
+    }
   }
 </style>
+
+<script>
+  function init() {
+    const cards = document.querySelectorAll<HTMLButtonElement>('.card[data-sub]');
+    const demos = document.querySelectorAll<HTMLDivElement>('[data-demo]');
+
+    cards.forEach((card) => {
+      card.addEventListener('click', () => {
+        const target = card.dataset.sub;
+        if (!target) return;
+
+        cards.forEach((c) => {
+          const isActive = c === card;
+          c.classList.toggle('active', isActive);
+          c.setAttribute('aria-pressed', String(isActive));
+        });
+
+        demos.forEach((d) => {
+          d.classList.toggle('active', d.dataset.demo === target);
+        });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

@@ -1,5 +1,42 @@
 ---
-import HeroTerminal from './HeroTerminal.astro';
+// Server-side colorize — expands §a:text§ markers to span classes at build
+// time. Zero runtime cost; HTML ships pre-colored.
+function colorize(text: string): string {
+  return text
+    .replace(/§a:([^§]+)§/g, '<span class="accent">$1</span>')
+    .replace(/§w:([^§]+)§/g, '<span class="warn">$1</span>')
+    .replace(/§d:([^§]+)§/g, '<span class="danger">$1</span>')
+    .replace(/§m:([^§]+)§/g, '<span class="dim">$1</span>')
+    .replace(/§b:([^§]+)§/g, '<span class="bright">$1</span>');
+}
+
+const heroDemo = `§a:$ §§b:clank deep§ +14155552671
+
+§b:Deep lookup§ — +14155552671
+
+§m:1.§ §b:Local§ — libphonenumber + spam check
+  +14155552671  §a:FIXED_OR_MOBILE§  §a:US§  San Francisco, CA
+
+§m:2.§ §b:Free APIs§
+  §m:numverify§    §w:skipped§ — NUMVERIFY_KEY not set
+  §m:veriphone§    §a:valid§ · MOBILE · AT&T · United States
+  §m:ipqs§         §a:valid§ · MOBILE · AT&T · §m:fraud=§§a:12§
+
+§m:3.§ §b:Telegram§
+  §a:registered§ · §a:@jane_d§ · Jane Doe
+
+§m:4.§ §b:WhatsApp§
+  §a:registered§ · jid=14155552671§m:@s.whatsapp.net§
+
+§m:5.§ §b:Account presence§
+  §m:instagram§  §a:registered§
+  §m:snapchat§   §w:?§ — method broken (Snapchat redesigned web auth ~2024)
+  §m:amazon§     §w:?§ rate-limited / inconclusive
+
+§m:6.§ §b:SEC EDGAR full-text§
+  §m:0§ hits
+
+§m:Took 6.2s§`;
 ---
 
 <section class="hero">
@@ -14,7 +51,15 @@ import HeroTerminal from './HeroTerminal.astro';
       No signup. No API gate. What PhoneInfoga should have been in 2026.
     </p>
 
-    <HeroTerminal />
+    <div class="terminal" aria-label="Example output of clank deep" role="img">
+      <div class="terminal-header">
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-title">~/clank</span>
+      </div>
+      <pre class="terminal-body" set:html={colorize(heroDemo)} />
+    </div>
 
     <div class="hero-ctas">
       <a class="btn btn-primary" href="#install">install →</a>
@@ -38,5 +83,14 @@ import HeroTerminal from './HeroTerminal.astro';
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: var(--space-md);
+  }
+  .terminal-body {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  @media (max-width: 600px) {
+    .terminal-body {
+      font-size: 0.78rem;
+    }
   }
 </style>
