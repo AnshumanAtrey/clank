@@ -1,0 +1,210 @@
+---
+const tabs = [
+  {
+    id: 'brew',
+    label: 'Homebrew',
+    note: 'tap setup pending — see issue #3',
+    cmd: 'brew install AnshumanAtrey/tap/clank',
+  },
+  {
+    id: 'binary',
+    label: 'Pre-built binary',
+    note: 'macOS / Linux / Windows from GitHub Releases',
+    cmd: 'curl -L https://github.com/AnshumanAtrey/clank/releases/latest/download/clank_$(uname -s)_$(uname -m).tar.gz | tar xz',
+  },
+  {
+    id: 'go',
+    label: 'go install',
+    note: 'requires Go 1.25+',
+    cmd: 'go install github.com/AnshumanAtrey/clank@latest',
+  },
+];
+---
+
+<section id="install" class="install">
+  <div class="container">
+    <h2>three ways to install. pick yours.</h2>
+
+    <div class="tabs" role="tablist">
+      {tabs.map((tab, i) => (
+        <button
+          class={`tab ${i === 0 ? 'active' : ''}`}
+          data-tab={tab.id}
+          role="tab"
+          aria-selected={i === 0 ? 'true' : 'false'}
+          type="button"
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+
+    <div class="panels">
+      {tabs.map((tab, i) => (
+        <div class={`panel ${i === 0 ? 'active' : ''}`} data-panel={tab.id} role="tabpanel">
+          <div class="note">{tab.note}</div>
+          <div class="terminal">
+            <div class="terminal-header">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-title">install.sh</span>
+            </div>
+            <div class="terminal-body cmd-row">
+              <code class="cmd-text">{tab.cmd}</code>
+              <button class="copy-btn" data-cmd={tab.cmd} type="button" aria-label="Copy install command">
+                copy
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="verify">
+      <div class="verify-label">After install, verify:</div>
+      <div class="terminal">
+        <div class="terminal-body">
+          <span class="prompt">$ </span><span class="bright">clank --version</span><br />
+          <span class="bright">clank v0.1.0</span><br />
+          <span class="dim">by Anshuman Atrey · https://atrey.dev · build@atrey.dev</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: var(--space-md) 0 0.875rem;
+  }
+  .tab {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--fg-dim);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.875rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab:hover {
+    color: var(--fg-bright);
+    border-color: var(--fg-dim);
+  }
+  .tab.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--bg-card);
+  }
+  .panel {
+    display: none;
+  }
+  .panel.active {
+    display: block;
+  }
+  .note {
+    color: var(--fg-dim);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .cmd-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    min-height: 0;
+  }
+  .cmd-text {
+    background: transparent;
+    padding: 0;
+    color: var(--fg-bright);
+    font-size: 0.875rem;
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .copy-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--fg-dim);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .copy-btn.copied {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .verify {
+    margin-top: var(--space-md);
+  }
+  .verify-label {
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+</style>
+
+<script>
+  function init() {
+    // Tab switching
+    document.querySelectorAll<HTMLButtonElement>('.tab[data-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        if (!target) return;
+
+        document.querySelectorAll<HTMLButtonElement>('.tab[data-tab]').forEach((t) => {
+          const isActive = t === tab;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', String(isActive));
+        });
+
+        document.querySelectorAll<HTMLDivElement>('[data-panel]').forEach((p) => {
+          p.classList.toggle('active', p.dataset.panel === target);
+        });
+      });
+    });
+
+    // Copy buttons
+    document.querySelectorAll<HTMLButtonElement>('.copy-btn[data-cmd]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const cmd = btn.dataset.cmd;
+        if (!cmd) return;
+
+        try {
+          await navigator.clipboard.writeText(cmd);
+          btn.textContent = 'copied ✓';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch {
+          btn.textContent = 'select & copy';
+          setTimeout(() => {
+            btn.textContent = 'copy';
+          }, 2000);
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

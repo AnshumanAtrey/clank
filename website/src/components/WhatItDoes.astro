@@ -1,0 +1,61 @@
+---
+const items = [
+  { cmd: 'SCAN', desc: 'bulk pattern → enrich every survivor' },
+  { cmd: 'DEEP', desc: 'one number, all six sources concurrently' },
+  { cmd: 'DORKS', desc: '~160 Google search URLs across 5 buckets' },
+  { cmd: 'IMEI', desc: 'Luhn check + 254,993-device TAC database' },
+];
+---
+
+<section class="what">
+  <div class="container">
+    <h2>what it does</h2>
+    <div class="grid">
+      {items.map((item) => (
+        <div class="item">
+          <div class="cmd">{item.cmd}</div>
+          <div class="desc">{item.desc}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: var(--space-md);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 600px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .item {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.875rem;
+    transition: border-color 0.15s ease;
+  }
+  .item:hover {
+    border-color: var(--accent);
+  }
+  .cmd {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    width: 4.5rem;
+  }
+  .desc {
+    color: var(--fg);
+    font-size: 0.92rem;
+  }
+</style>

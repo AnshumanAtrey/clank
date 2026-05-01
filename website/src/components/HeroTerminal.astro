@@ -1,0 +1,142 @@
+---
+// Animated typewriter terminal — vanilla TS, ~2 KB after Astro bundles it.
+// Loops a sequence: type a command, "execute" it (output appears),
+// pause, then restart.
+---
+
+<div class="terminal" aria-label="Animated demo of clank CLI" role="img">
+  <div class="terminal-header">
+    <span class="terminal-dot"></span>
+    <span class="terminal-dot"></span>
+    <span class="terminal-dot"></span>
+    <span class="terminal-title">~/clank</span>
+  </div>
+  <div class="terminal-body" id="hero-tty"><span class="prompt">$ </span><span id="hero-content"></span><span class="cursor"></span></div>
+</div>
+
+<style>
+  .terminal-body {
+    min-height: 22rem;
+  }
+  @media (max-width: 600px) {
+    .terminal-body {
+      min-height: 26rem;
+      font-size: 0.78rem;
+    }
+  }
+</style>
+
+<script>
+  type Action =
+    | { kind: 'type'; text: string; speedMs?: number }
+    | { kind: 'print'; text: string; pauseMs?: number }
+    | { kind: 'wait'; ms: number }
+    | { kind: 'reset' };
+
+  // Each output line uses simple markers we expand to spans:
+  //   §a:text§ → accent (mint)
+  //   §w:text§ → warn (amber)
+  //   §d:text§ → danger (coral)
+  //   §m:text§ → dim
+  //   §b:text§ → bright
+  // Plain text stays as-is.
+
+  const sequence: Action[] = [
+    { kind: 'type', text: 'clank deep +14155552671', speedMs: 55 },
+    { kind: 'wait', ms: 500 },
+    { kind: 'print', text: '\n\n§b:Deep lookup§ — +14155552671\n', pauseMs: 250 },
+    { kind: 'print', text: '\n§m:1.§ §b:Local§ — libphonenumber + spam check\n  +14155552671  §a:FIXED_OR_MOBILE§  §a:US§  San Francisco, CA\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:2.§ §b:Free APIs§\n  §m:numverify§    §w:skipped§ — NUMVERIFY_KEY not set\n  §m:veriphone§    §a:valid§ · MOBILE · AT&T · United States\n  §m:ipqs§         §a:valid§ · MOBILE · AT&T · §m:fraud=§§a:12§\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:3.§ §b:Telegram§\n  §a:registered§ · §a:@jane_d§ · Jane Doe\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:4.§ §b:WhatsApp§\n  §a:registered§ · jid=14155552671§m:@s.whatsapp.net§\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:5.§ §b:Account presence§\n  §m:instagram§  §a:registered§\n  §m:snapchat§   §w:?§ — method broken (Snapchat redesigned web auth ~2024)\n  §m:amazon§     §w:?§ rate-limited / inconclusive\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:6.§ §b:SEC EDGAR full-text§\n  §m:0§ hits\n', pauseMs: 350 },
+    { kind: 'print', text: '\n§m:Took 6.2s§\n', pauseMs: 200 },
+    { kind: 'wait', ms: 4500 },
+    { kind: 'reset' },
+  ];
+
+  const PROMPT = '<span class="prompt">$ </span>';
+  const CURSOR = '<span class="cursor"></span>';
+
+  function expandMarkers(text: string): string {
+    return text
+      .replace(/§a:([^§]+)§/g, '<span class="accent">$1</span>')
+      .replace(/§w:([^§]+)§/g, '<span class="warn">$1</span>')
+      .replace(/§d:([^§]+)§/g, '<span class="danger">$1</span>')
+      .replace(/§m:([^§]+)§/g, '<span class="dim">$1</span>')
+      .replace(/§b:([^§]+)§/g, '<span class="bright">$1</span>');
+  }
+
+  function escapeHtml(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function run(content: HTMLElement, terminal: HTMLElement) {
+    let buffer = '';
+
+    const render = () => {
+      // Buffer is a mix of plain text (escaped) + marker syntax (expanded).
+      // The cursor lives outside the content span, so we just write content.
+      content.innerHTML = expandMarkers(buffer);
+      // Auto-scroll the terminal body so latest output is visible.
+      terminal.scrollTop = terminal.scrollHeight;
+    };
+
+    while (true) {
+      buffer = '';
+      render();
+
+      for (const action of sequence) {
+        if (action.kind === 'reset') {
+          buffer = '';
+          render();
+        } else if (action.kind === 'wait') {
+          await wait(action.ms);
+        } else if (action.kind === 'type') {
+          const speed = action.speedMs ?? 60;
+          for (const char of action.text) {
+            buffer += escapeHtml(char);
+            render();
+            await wait(speed);
+          }
+        } else if (action.kind === 'print') {
+          // Print the whole chunk at once (instant), then optional pause.
+          // Markers stay raw in buffer — expandMarkers handles them at render.
+          // We need to escape the plain parts but preserve markers.
+          buffer += action.text;
+          render();
+          if (action.pauseMs) await wait(action.pauseMs);
+        }
+      }
+    }
+  }
+
+  function init() {
+    const content = document.getElementById('hero-content');
+    const terminal = document.getElementById('hero-tty');
+    if (!content || !terminal) return;
+
+    // Honor reduced motion — show final state instantly without animating.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const finalBuffer = sequence
+        .filter((a) => a.kind === 'type' || a.kind === 'print')
+        .map((a) => (a as any).text)
+        .join('');
+      content.innerHTML = expandMarkers(finalBuffer.replace(/§([awdmb]):([^§]+)§/g, '$2'));
+      return;
+    }
+
+    run(content, terminal);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

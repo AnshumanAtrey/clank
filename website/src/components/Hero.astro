@@ -1,0 +1,42 @@
+---
+import HeroTerminal from './HeroTerminal.astro';
+---
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">v0.1.0 · MIT · open source</span>
+    <h1>
+      phone-number OSINT.<br />
+      <span class="text-accent">one binary.</span> ten subcommands.
+    </h1>
+    <p class="hero-sub">
+      Open-source CLI for phone-number reconnaissance.<br />
+      No signup. No API gate. What PhoneInfoga should have been in 2026.
+    </p>
+
+    <HeroTerminal />
+
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#install">install →</a>
+      <a class="btn" href="https://github.com/AnshumanAtrey/clank">view on github</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: var(--space-xl);
+  }
+  .hero-sub {
+    color: var(--fg-dim);
+    font-size: 1.05rem;
+    margin: var(--space-sm) 0 var(--space-md);
+    max-width: 36rem;
+  }
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: var(--space-md);
+  }
+</style>

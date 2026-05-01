@@ -1,0 +1,66 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="author">
+      <div class="row">Built by <strong class="text-bright">Anshuman Atrey</strong></div>
+      <div class="row text-dim">Software engineer · OSINT toolmaker · 5x hackathon winner</div>
+      <div class="links">
+        <a href="https://atrey.dev">atrey.dev</a>
+        <span class="sep">·</span>
+        <a href="https://linkedin.com/in/anshumanatrey/">linkedin.com/in/anshumanatrey/</a>
+        <span class="sep">·</span>
+        <a href="mailto:build@atrey.dev">build@atrey.dev</a>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div>clank — phone-number OSINT toolkit</div>
+      <div class="text-dim">MIT License · © {year} Anshuman Atrey</div>
+      <div class="links small">
+        <a href="https://github.com/AnshumanAtrey/clank">github</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/AnshumanAtrey/clank/issues">issues</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/AnshumanAtrey/clank/releases">releases</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: var(--space-lg) 0;
+    margin-top: var(--space-lg);
+  }
+  .author {
+    margin-bottom: var(--space-md);
+  }
+  .row {
+    margin-bottom: 0.25rem;
+  }
+  .links {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .links.small {
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+  }
+  .sep {
+    color: var(--fg-dim);
+    margin: 0 0.4rem;
+  }
+  .meta {
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-md);
+  }
+  .meta > div {
+    margin-bottom: 0.3rem;
+  }
+</style>

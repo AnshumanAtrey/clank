@@ -1,0 +1,87 @@
+---
+const faqs = [
+  {
+    q: 'Why open-source?',
+    a: "Because phone OSINT shouldn't require a $99/mo Truecaller-Pro subscription. The data is public. The tool should be too.",
+  },
+  {
+    q: 'Is this legal?',
+    a: 'Depends on your jurisdiction. clank queries public data sources via documented endpoints. Same as any web search. Misuse (stalking, harassment) is illegal regardless of tool. Read the README\'s Disclaimer.',
+  },
+  {
+    q: 'Will you add Truecaller?',
+    a: 'Yes — top of the v0.2.0 roadmap. See the GitHub issue tracker for ETA.',
+  },
+  {
+    q: 'How does it compare to PhoneInfoga?',
+    a: 'clank: faster (Go binary, no Python deps), more sources (Telegram/WhatsApp/EDGAR), honest about brokenness. PhoneInfoga: web UI, more provider integrations, more battle-tested. Use both.',
+  },
+  {
+    q: 'Can I contribute?',
+    a: 'Yes. Issues + PRs welcome at github.com/AnshumanAtrey/clank. Roadmap is public in path-1/01-launch-strategy.md.',
+  },
+  {
+    q: 'Does it phone home?',
+    a: 'No. Zero telemetry. Zero analytics. Zero outbound calls except to the OSINT data sources you explicitly invoke. Audit log lives at ~/.clank/history.jsonl on your machine, never sent anywhere. Set CLANK_NO_AUDIT=1 to disable even that.',
+  },
+];
+---
+
+<section class="faq">
+  <div class="container">
+    <h2>faq</h2>
+    <div class="list">
+      {faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <div class="answer">{f.a}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .list {
+    margin-top: var(--space-md);
+    display: grid;
+    gap: 0.5rem;
+  }
+  details {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+  }
+  details[open] {
+    border-color: var(--accent);
+  }
+  summary {
+    cursor: pointer;
+    color: var(--fg-bright);
+    font-weight: 500;
+    font-size: 0.95rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  summary::after {
+    content: '+';
+    color: var(--accent);
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+  }
+  details[open] summary::after {
+    content: '−';
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .answer {
+    color: var(--fg);
+    margin-top: 0.6rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+</style>

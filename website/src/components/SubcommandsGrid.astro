@@ -1,0 +1,96 @@
+---
+const subcommands = [
+  { name: 'scan', desc: 'Bulk lookup over a pattern with rate-limit-aware sleeps', status: 'works' },
+  { name: 'deep', desc: 'Single number, all 6 sources concurrently', status: 'works' },
+  { name: 'dorks', desc: 'Generate ~160 Google-dork URLs across 5 buckets', status: 'works' },
+  { name: 'imei', desc: 'Luhn check + 254,993-device TAC lookup (Mar 2026)', status: 'works' },
+  { name: 'edgar', desc: 'SEC EDGAR full-text filings search', status: 'works' },
+  { name: 'telegram', desc: 'MTProto phone-to-user via gotd/td', status: 'session' },
+  { name: 'whatsapp', desc: 'WhatsApp via whatsmeow (QR-pair)', status: 'session' },
+  { name: 'ignorant', desc: 'Instagram / Snapchat / Amazon presence', status: 'partial' },
+  { name: 'history', desc: 'Audit log of every clank invocation', status: 'works' },
+  { name: '--version', desc: 'Print version + author', status: 'works' },
+];
+
+const statusLabel = {
+  works: { text: 'works', cls: 'st-ok' },
+  session: { text: 'needs session', cls: 'st-warn' },
+  partial: { text: 'partial — Snapchat broken', cls: 'st-broken' },
+};
+---
+
+<section class="subs">
+  <div class="container">
+    <h2>every subcommand. no paywalls.</h2>
+    <div class="grid">
+      {subcommands.map((sub) => {
+        const meta = statusLabel[sub.status as keyof typeof statusLabel];
+        return (
+          <article class="card">
+            <div class="card-head">
+              <code class="name">clank {sub.name}</code>
+              <span class={`status ${meta.cls}`}>{meta.text}</span>
+            </div>
+            <p class="desc">{sub.desc}</p>
+          </article>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: var(--space-md);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 600px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .name {
+    background: transparent;
+    padding: 0;
+    color: var(--fg-bright);
+    font-weight: 600;
+  }
+  .status {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .st-ok {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .st-warn {
+    color: var(--accent-warn);
+    border-color: var(--accent-warn);
+  }
+  .st-broken {
+    color: var(--accent-danger);
+    border-color: var(--accent-danger);
+  }
+  .desc {
+    color: var(--fg);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+</style>
