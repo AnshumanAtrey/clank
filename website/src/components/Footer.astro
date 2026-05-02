@@ -3,23 +3,18 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
-  <div class="container">
-    <div class="author">
-      <div class="row">Built by <strong class="text-bright">Anshuman Atrey</strong></div>
-      <div class="row text-dim">Software engineer · OSINT toolmaker · 5x hackathon winner</div>
-      <div class="links">
-        <a href="https://atrey.dev">atrey.dev</a>
-        <span class="sep">·</span>
-        <a href="https://linkedin.com/in/anshumanatrey/">linkedin.com/in/anshumanatrey/</a>
-        <span class="sep">·</span>
-        <a href="mailto:build@atrey.dev">build@atrey.dev</a>
-      </div>
-    </div>
+  <div class="footer-bg" aria-hidden="true"></div>
 
-    <div class="meta">
-      <div>clank — phone-number OSINT toolkit</div>
-      <div class="text-dim">MIT License · © {year} Anshuman Atrey</div>
-      <div class="links small">
+  <div class="container footer-content">
+    <div class="row top">
+      <div class="brand">
+        <div class="brand-name">
+          <span>clank</span><span class="dot">.</span>
+        </div>
+        <div class="brand-sub">phone-number OSINT toolkit</div>
+      </div>
+
+      <div class="links">
         <a href="https://github.com/AnshumanAtrey/clank">github</a>
         <span class="sep">·</span>
         <a href="https://github.com/AnshumanAtrey/clank/issues">issues</a>
@@ -27,40 +22,138 @@ const year = new Date().getFullYear();
         <a href="https://github.com/AnshumanAtrey/clank/releases">releases</a>
       </div>
     </div>
+
+    <div class="rule"></div>
+
+    <div class="row bottom">
+      <div class="author">
+        <div>built by <a href="https://atrey.dev"><strong>Anshuman Atrey</strong></a></div>
+        <div class="author-sub">software engineer · OSINT toolmaker · 5x hackathon winner</div>
+        <div class="author-links">
+          <a href="https://atrey.dev">atrey.dev</a>
+          <span class="sep">·</span>
+          <a href="https://linkedin.com/in/anshumanatrey/">linkedin/in/anshumanatrey</a>
+          <span class="sep">·</span>
+          <a href="mailto:build@atrey.dev">build@atrey.dev</a>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="stamp stamp-works copyright-stamp">MIT · {year}</div>
+      </div>
+    </div>
   </div>
 </footer>
 
 <style>
   .footer {
-    border-top: 1px solid var(--border);
-    padding: var(--space-lg) 0;
-    margin-top: var(--space-lg);
+    position: relative;
+    margin-top: var(--space-xl);
+    padding: var(--space-lg) 0 var(--space-md);
+    background: var(--paper-deep);
+    overflow: hidden;
+    isolation: isolate;
   }
-  .author {
-    margin-bottom: var(--space-md);
+  .footer-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/clank-snail.jpg') center/cover no-repeat;
+    opacity: 0.12;
+    z-index: -1;
+    filter: saturate(0.7);
   }
+  [data-theme='dark'] .footer-bg {
+    opacity: 0.18;
+    filter: saturate(0.5) brightness(0.7);
+  }
+  /* fade overlay so text stays readable */
+  .footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      var(--paper-deep) 0%,
+      transparent 25%,
+      transparent 75%,
+      var(--paper-deep) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  .footer-content {
+    position: relative;
+    z-index: 1;
+  }
+
   .row {
-    margin-bottom: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
   }
+  .row.bottom {
+    align-items: flex-end;
+  }
+
+  .brand-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--ink);
+    font-variation-settings: 'SOFT' 100, 'opsz' 144;
+    letter-spacing: -0.01em;
+  }
+  .brand-name .dot {
+    color: var(--brick);
+  }
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.2rem;
+    letter-spacing: 0.02em;
+  }
+
   .links {
-    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+  }
+
+  .rule {
+    border-top: 1px dashed var(--ink-mute);
+    margin: var(--space-md) 0;
+    opacity: 0.4;
+  }
+
+  .author {
+    color: var(--ink-dim);
     font-size: 0.9rem;
   }
-  .links.small {
-    font-size: 0.85rem;
-    margin-top: 0.4rem;
+  .author > div {
+    margin-bottom: 0.2rem;
   }
+  .author-sub {
+    color: var(--ink-mute);
+    font-style: italic;
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+  }
+  .author-links {
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
   .sep {
-    color: var(--fg-dim);
+    color: var(--ink-mute);
     margin: 0 0.4rem;
   }
-  .meta {
-    color: var(--fg-dim);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--border);
-    padding-top: var(--space-md);
-  }
-  .meta > div {
-    margin-bottom: 0.3rem;
+
+  .copyright-stamp {
+    transform: rotate(-4deg);
+    font-size: 0.7rem;
   }
 </style>

@@ -1,6 +1,4 @@
 ---
-// Build-time colorize — same marker syntax as Hero. All demos render at build
-// time with span classes baked in. Zero runtime templating cost.
 function colorize(text: string): string {
   return text
     .replace(/§a:([^§]+)§/g, '<span class="accent">$1</span>')
@@ -15,7 +13,7 @@ const subs = [
     id: 'scan',
     name: 'clank scan',
     desc: 'Bulk lookup over a pattern with rate-limit-aware sleeps',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank scan§ --quick --max 5 +918115605xxx --region IN
 
 §b:Generating candidates§... §a:1000§ from pattern
@@ -42,7 +40,7 @@ Sampling §a:5§ candidates (§m:strategy: head§)
     id: 'deep',
     name: 'clank deep',
     desc: 'Single number, all 6 sources concurrently',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank deep§ +14155552671
 
 §b:Deep lookup§ — +14155552671
@@ -75,7 +73,7 @@ Sampling §a:5§ candidates (§m:strategy: head§)
     id: 'dorks',
     name: 'clank dorks',
     desc: 'Generate ~160 Google-dork URLs across 5 buckets',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank dorks§ --bucket social +14155552671
 
 §b:Generating Google-dork URLs§ (bucket: §a:social§)
@@ -99,7 +97,7 @@ Variants: §m:E.164, INTERNATIONAL, NATIONAL, digits-only§
     id: 'imei',
     name: 'clank imei',
     desc: 'Luhn check + 254,993-device TAC lookup (Mar 2026)',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank imei§ 352099001761481
 
 §b:IMEI:§ §a:352099001761481§
@@ -118,7 +116,7 @@ GSM bands     §m:900/1800/1900 MHz§
     id: 'edgar',
     name: 'clank edgar',
     desc: 'SEC EDGAR full-text filings search',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank edgar§ --hits 5 "(415) 421-7900"
 
 §b:SEC EDGAR full-text search§
@@ -138,7 +136,7 @@ Hits: §a:5§ of §a:453§
     id: 'telegram',
     name: 'clank telegram',
     desc: 'MTProto phone-to-user via gotd/td',
-    status: { text: 'needs session', cls: 'st-warn' },
+    stamp: { text: 'needs session', cls: 'stamp-session' },
     demo: `§a:$ §§b:clank telegram lookup§ +14155552671
 
 §b:Telegram MTProto lookup§ via gotd/td
@@ -160,7 +158,7 @@ Restricted  §m:no§
     id: 'whatsapp',
     name: 'clank whatsapp',
     desc: 'WhatsApp via whatsmeow (QR-pair)',
-    status: { text: 'needs session', cls: 'st-warn' },
+    stamp: { text: 'needs session', cls: 'stamp-session' },
     demo: `§a:$ §§b:clank whatsapp lookup§ +14155552671
 
 §b:WhatsApp via whatsmeow§ (paired session)
@@ -180,7 +178,7 @@ Devices            §a:2§
     id: 'ignorant',
     name: 'clank ignorant',
     desc: 'Instagram / Snapchat / Amazon presence',
-    status: { text: 'partial — Snapchat broken', cls: 'st-broken' },
+    stamp: { text: 'broken', cls: 'stamp-broken' },
     demo: `§a:$ §§b:clank ignorant§ +14155552671
 
 §b:Phone presence check§ (3 platforms, parallel)
@@ -196,7 +194,7 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
     id: 'history',
     name: 'clank history',
     desc: 'Audit log of every clank invocation',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank history§ --tail 5
 
 §b:Last 5 invocations§ from §m:~/.clank/history.jsonl§
@@ -213,7 +211,7 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
     id: 'version',
     name: 'clank --version',
     desc: 'Print version + author',
-    status: { text: 'works', cls: 'st-ok' },
+    stamp: { text: 'works', cls: 'stamp-works' },
     demo: `§a:$ §§b:clank --version§
 
 §b:clank v0.1.0§
@@ -226,23 +224,28 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
 
 <section class="subs">
   <div class="container">
-    <h2>every subcommand. <span class="text-dim">click to see it run.</span></h2>
+    <h2>every subcommand. <span class="serif-italic">click to see it run.</span></h2>
+    <p class="subs-lead">
+      Pinned to the corkboard. Tap any card to flip the page below it.
+    </p>
 
-    <div class="grid">
-      {subs.map((sub, i) => (
-        <button
-          class={`card ${i === 0 ? 'active' : ''}`}
-          data-sub={sub.id}
-          type="button"
-          aria-pressed={i === 0 ? 'true' : 'false'}
-        >
-          <div class="card-head">
-            <code class="name">{sub.name}</code>
-            <span class={`status ${sub.status.cls}`}>{sub.status.text}</span>
-          </div>
-          <p class="desc">{sub.desc}</p>
-        </button>
-      ))}
+    <div class="corkboard">
+      <div class="grid">
+        {subs.map((sub, i) => (
+          <button
+            class={`card ${i === 0 ? 'active' : ''}`}
+            data-sub={sub.id}
+            type="button"
+            aria-pressed={i === 0 ? 'true' : 'false'}
+          >
+            <div class="card-head">
+              <code class="name">{sub.name}</code>
+              <span class={`stamp ${sub.stamp.cls}`}>{sub.stamp.text}</span>
+            </div>
+            <p class="desc">{sub.desc}</p>
+          </button>
+        ))}
+      </div>
     </div>
 
     <div class="demos">
@@ -253,7 +256,7 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
               <span class="terminal-dot"></span>
               <span class="terminal-dot"></span>
               <span class="terminal-dot"></span>
-              <span class="terminal-title">~/clank</span>
+              <span class="terminal-title">~/clank · {sub.name}</span>
             </div>
             <pre class="terminal-body" set:html={colorize(sub.demo)} />
           </div>
@@ -264,74 +267,83 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
 </section>
 
 <style>
+  .subs h2 .serif-italic {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
+  .subs-lead {
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+    margin: 0.5rem 0 var(--space-md);
+    font-style: italic;
+    font-family: var(--font-serif);
+  }
+
+  /* Corkboard background — warm cork tone with subtle dotted texture */
+  .corkboard {
+    background: var(--cork);
+    background-image:
+      radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 35%),
+      radial-gradient(circle at 75% 70%, rgba(0, 0, 0, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 8px),
+      var(--grain);
+    background-size: 100% 100%, 100% 100%, 8px 8px, 240px 240px;
+    padding: 2rem 1.25rem;
+    border-radius: 6px;
+    box-shadow: var(--shadow-rest), inset 0 0 0 4px var(--oak-dark),
+      inset 0 0 0 8px var(--oak);
+    margin-bottom: var(--space-md);
+  }
+  @media (min-width: 768px) {
+    .corkboard {
+      padding: 2.5rem 1.5rem;
+    }
+  }
+
   .grid {
     display: grid;
-    gap: 0.6rem;
-    margin: var(--space-md) 0 var(--space-md);
+    gap: 1.25rem 0.75rem;
     grid-template-columns: 1fr;
+    padding-top: 0.5rem;
   }
   @media (min-width: 600px) {
     .grid {
       grid-template-columns: 1fr 1fr;
     }
   }
-  .card {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.75rem 0.875rem;
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--font-mono);
-    transition: border-color 0.15s ease, background 0.15s ease;
+  @media (min-width: 900px) {
+    .grid {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
   }
-  .card:hover {
-    border-color: var(--fg-dim);
-  }
-  .card.active {
-    border-color: var(--accent);
-    background: var(--bg-card);
-  }
+
   .card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
   }
   .name {
     background: transparent;
+    border: none;
     padding: 0;
-    color: var(--fg-bright);
+    color: var(--ink);
+    font-family: var(--font-mono);
     font-weight: 600;
-    font-size: 0.875rem;
-  }
-  .status {
-    font-size: 0.65rem;
-    padding: 0.1rem 0.45rem;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  .st-ok {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-  .st-warn {
-    color: var(--accent-warn);
-    border-color: var(--accent-warn);
-  }
-  .st-broken {
-    color: var(--accent-danger);
-    border-color: var(--accent-danger);
+    font-size: 0.9rem;
   }
   .desc {
-    color: var(--fg);
-    font-size: 0.82rem;
+    color: var(--ink-dim);
+    font-size: 0.85rem;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.45;
+    font-family: var(--font-sans);
   }
 
+  /* Demo panels — slide in from below like pulling a folder page */
   .demos {
     margin-top: 0.5rem;
   }
@@ -340,12 +352,12 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
   }
   .demo.active {
     display: block;
-    animation: fadeIn 0.18s ease-out;
+    animation: pageSlide 0.25s ease-out;
   }
-  @keyframes fadeIn {
+  @keyframes pageSlide {
     from {
       opacity: 0;
-      transform: translateY(2px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -354,12 +366,12 @@ amazon      §w:?§ rate-limited / inconclusive — try with proxy
   }
   .terminal-body {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     min-height: 16rem;
   }
   @media (max-width: 600px) {
     .terminal-body {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
     }
   }
 </style>

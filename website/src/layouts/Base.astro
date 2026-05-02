@@ -16,15 +16,23 @@ const ogImage = new URL('/og.png', Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#0a0e14" />
+    <meta name="theme-color" content="#f0e4cc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#251910" media="(prefers-color-scheme: dark)" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -66,8 +74,196 @@ const ogImage = new URL('/og.png', Astro.site).href;
         priceCurrency: 'USD',
       },
     })} />
+
+    <!-- No-flash theme detection — runs before paint -->
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('clank-theme');
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.dataset.theme = stored;
+          }
+        } catch {}
+      })();
+    </script>
   </head>
   <body>
+    <nav class="nav">
+      <div class="container nav-row">
+        <a class="wordmark" href="/" aria-label="clank home">
+          <span class="wordmark-text">clank</span>
+          <span class="wordmark-dot">.</span>
+        </a>
+
+        <div class="nav-actions">
+          <a class="nav-link" href="https://github.com/AnshumanAtrey/clank" aria-label="View on GitHub">
+            github
+          </a>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" type="button">
+            <svg class="lantern" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <!-- handle -->
+              <path d="M10 2.5h4" />
+              <!-- chain -->
+              <path d="M12 2.5v2" />
+              <!-- top cap -->
+              <path d="M7.5 5h9l-1 2.2h-7z" />
+              <!-- body -->
+              <path d="M8 7.2v11.5h8V7.2" />
+              <!-- bottom plate -->
+              <path d="M7.5 18.7h9l-1 2.3h-7z" />
+              <!-- flame -->
+              <path class="flame" d="M12 10.4c-1.1 1.1-1.7 2.1-1.7 3.2a1.7 1.7 0 0 0 3.4 0c0-1.1-.6-2.1-1.7-3.2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+
     <slot />
+
+    <style>
+      .nav {
+        padding: 1.1rem 0;
+        background: transparent;
+      }
+      .nav-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .wordmark {
+        display: inline-flex;
+        align-items: baseline;
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: var(--ink);
+        text-decoration: none;
+        border-bottom: none;
+        font-variation-settings: 'SOFT' 100, 'opsz' 144;
+        letter-spacing: -0.01em;
+      }
+      .wordmark:hover {
+        color: var(--brick);
+      }
+      .wordmark-dot {
+        color: var(--brick);
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+      }
+      .nav-link {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--ink-dim);
+        border-bottom: 1px solid transparent;
+        padding-bottom: 1px;
+      }
+      .nav-link:hover {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+      .theme-toggle {
+        background: var(--paper-soft);
+        border: 1px solid var(--oak-dark);
+        color: var(--ink);
+        padding: 0.4rem;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-rest);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .theme-toggle:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lift);
+      }
+      .theme-toggle:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-press);
+      }
+      .lantern {
+        width: 20px;
+        height: 20px;
+      }
+      .flame {
+        fill: transparent;
+        transition: fill 0.4s ease;
+      }
+      [data-theme='dark'] .flame {
+        fill: #ffb454;
+      }
+    </style>
+
+    <script>
+      function initThemeToggle() {
+        const btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+
+        btn.addEventListener('click', (event) => {
+          const e = event as MouseEvent;
+          const root = document.documentElement;
+          const current = root.dataset.theme || 'light';
+          const next = current === 'dark' ? 'light' : 'dark';
+
+          const apply = () => {
+            root.dataset.theme = next;
+            try {
+              localStorage.setItem('clank-theme', next);
+            } catch {}
+          };
+
+          // Fallback for browsers without View Transitions
+          if (!('startViewTransition' in document)) {
+            apply();
+            return;
+          }
+
+          // Respect reduced motion
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            apply();
+            return;
+          }
+
+          const x = e.clientX;
+          const y = e.clientY;
+          const endRadius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+          );
+
+          // @ts-ignore — startViewTransition is recent
+          const transition = document.startViewTransition(apply);
+          transition.ready.then(() => {
+            document.documentElement.animate(
+              {
+                clipPath: [
+                  `circle(0px at ${x}px ${y}px)`,
+                  `circle(${endRadius}px at ${x}px ${y}px)`,
+                ],
+              },
+              {
+                duration: 550,
+                easing: 'ease-in-out',
+                pseudoElement: '::view-transition-new(root)',
+              }
+            );
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initThemeToggle);
+      } else {
+        initThemeToggle();
+      }
+    </script>
   </body>
 </html>

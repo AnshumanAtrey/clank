@@ -23,51 +23,53 @@ const tabs = [
 
 <section id="install" class="install">
   <div class="container">
-    <h2>three ways to install. pick yours.</h2>
+    <h2>three ways to install. <span class="serif-italic">pick yours.</span></h2>
 
-    <div class="tabs" role="tablist">
-      {tabs.map((tab, i) => (
-        <button
-          class={`tab ${i === 0 ? 'active' : ''}`}
-          data-tab={tab.id}
-          role="tab"
-          aria-selected={i === 0 ? 'true' : 'false'}
-          type="button"
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <div class="folder">
+      <div class="tabs" role="tablist">
+        {tabs.map((tab, i) => (
+          <button
+            class={`tab ${i === 0 ? 'active' : ''}`}
+            data-tab={tab.id}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            type="button"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-    <div class="panels">
-      {tabs.map((tab, i) => (
-        <div class={`panel ${i === 0 ? 'active' : ''}`} data-panel={tab.id} role="tabpanel">
-          <div class="note">{tab.note}</div>
-          <div class="terminal">
-            <div class="terminal-header">
-              <span class="terminal-dot"></span>
-              <span class="terminal-dot"></span>
-              <span class="terminal-dot"></span>
-              <span class="terminal-title">install.sh</span>
-            </div>
-            <div class="terminal-body cmd-row">
-              <code class="cmd-text">{tab.cmd}</code>
-              <button class="copy-btn" data-cmd={tab.cmd} type="button" aria-label="Copy install command">
-                copy
-              </button>
+      <div class="panels">
+        {tabs.map((tab, i) => (
+          <div class={`panel ${i === 0 ? 'active' : ''}`} data-panel={tab.id} role="tabpanel">
+            <div class="note">{tab.note}</div>
+            <div class="terminal">
+              <div class="terminal-header">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">install.sh</span>
+              </div>
+              <div class="terminal-body cmd-row">
+                <code class="cmd-text">{tab.cmd}</code>
+                <button class="copy-btn" data-cmd={tab.cmd} type="button" aria-label="Copy install command">
+                  copy
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
 
     <div class="verify">
       <div class="verify-label">After install, verify:</div>
       <div class="terminal">
         <div class="terminal-body">
-          <span class="prompt">$ </span><span class="bright">clank --version</span><br />
-          <span class="bright">clank v0.1.0</span><br />
-          <span class="dim">by Anshuman Atrey · https://atrey.dev · build@atrey.dev</span>
+<span class="prompt">$ </span><span class="bright">clank --version</span>
+<span class="bright">clank v0.1.0</span>
+<span class="dim">by Anshuman Atrey · https://atrey.dev · build@atrey.dev</span>
         </div>
       </div>
     </div>
@@ -75,42 +77,91 @@ const tabs = [
 </section>
 
 <style>
+  .install h2 .serif-italic {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
+
+  .folder {
+    margin-top: var(--space-md);
+  }
+
   .tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: var(--space-md) 0 0.875rem;
+    gap: 0.25rem;
+    padding-left: 0.4rem;
   }
   .tab {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    color: var(--fg-dim);
+    background: var(--paper-soft);
+    background-image: var(--grain);
+    background-size: 240px 240px;
+    border: 1px solid var(--oak-dark);
+    border-bottom: none;
+    color: var(--ink-dim);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
-    padding: 0.45rem 0.875rem;
-    border-radius: 4px;
+    font-size: 0.82rem;
+    padding: 0.55rem 1rem 0.7rem;
+    border-radius: 6px 6px 0 0;
     cursor: pointer;
     transition: all 0.15s ease;
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
   }
   .tab:hover {
-    color: var(--fg-bright);
-    border-color: var(--fg-dim);
+    color: var(--ink);
+    background: var(--paper);
   }
   .tab.active {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--bg-card);
+    color: var(--ink);
+    background: var(--paper-soft);
+    background-image: var(--grain);
+    background-size: 240px 240px;
+    z-index: 3;
+    font-weight: 500;
+    border-bottom: 1px solid var(--paper-soft);
   }
+
   .panel {
     display: none;
   }
   .panel.active {
     display: block;
+    animation: pageSlide 0.2s ease-out;
   }
+  @keyframes pageSlide {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Folder body — paper card under tabs */
+  .panels {
+    background: var(--paper-soft);
+    background-image: var(--grain);
+    background-size: 240px 240px;
+    border: 1px solid var(--oak-dark);
+    border-radius: 0 6px 6px 6px;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-rest);
+    position: relative;
+    z-index: 2;
+  }
+
   .note {
-    color: var(--fg-dim);
-    font-size: 0.8rem;
-    margin-bottom: 0.5rem;
+    color: var(--ink-dim);
+    font-size: 0.82rem;
+    margin-bottom: 0.65rem;
+    font-style: italic;
+    font-family: var(--font-serif);
   }
   .cmd-row {
     display: flex;
@@ -122,45 +173,51 @@ const tabs = [
   .cmd-text {
     background: transparent;
     padding: 0;
-    color: var(--fg-bright);
-    font-size: 0.875rem;
+    border: none;
+    color: var(--cream);
+    font-size: 0.82rem;
     flex: 1;
     overflow-x: auto;
     white-space: nowrap;
+    font-family: var(--font-mono);
   }
   .copy-btn {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--fg-dim);
+    background: transparent;
+    border: 1px solid var(--cream-dim);
+    color: var(--cream-dim);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    padding: 0.3rem 0.7rem;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
     border-radius: 3px;
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     transition: all 0.15s ease;
     flex-shrink: 0;
   }
   .copy-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--cream);
+    border-color: var(--cream);
   }
   .copy-btn.copied {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: #95e6cb;
+    border-color: #95e6cb;
   }
+
   .verify {
     margin-top: var(--space-md);
   }
   .verify-label {
-    color: var(--fg-dim);
+    color: var(--ink-dim);
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
+    font-style: italic;
+    font-family: var(--font-serif);
   }
 </style>
 
 <script>
   function init() {
-    // Tab switching
     document.querySelectorAll<HTMLButtonElement>('.tab[data-tab]').forEach((tab) => {
       tab.addEventListener('click', () => {
         const target = tab.dataset.tab;
@@ -178,12 +235,10 @@ const tabs = [
       });
     });
 
-    // Copy buttons
     document.querySelectorAll<HTMLButtonElement>('.copy-btn[data-cmd]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const cmd = btn.dataset.cmd;
         if (!cmd) return;
-
         try {
           await navigator.clipboard.writeText(cmd);
           btn.textContent = 'copied ✓';
@@ -193,7 +248,7 @@ const tabs = [
             btn.classList.remove('copied');
           }, 2000);
         } catch {
-          btn.textContent = 'select & copy';
+          btn.textContent = 'select';
           setTimeout(() => {
             btn.textContent = 'copy';
           }, 2000);
