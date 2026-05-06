@@ -23,17 +23,18 @@ import (
 
 // Result is the merged report from every source.
 type Result struct {
-	Phone    string         `json:"phone"`
-	Region   string         `json:"default_region,omitempty"`
-	E164     string         `json:"e164,omitempty"`
-	Local    *local.Lookup  `json:"local,omitempty"`
-	APIs     []*APIBlock    `json:"apis,omitempty"`
-	Telegram *TelegramBlock `json:"telegram,omitempty"`
-	WhatsApp *WhatsAppBlock `json:"whatsapp,omitempty"`
-	Ignorant *IgnorantBlock `json:"ignorant,omitempty"`
-	Edgar    *EdgarBlock    `json:"edgar,omitempty"`
-	Dorks    []dorks.Dork   `json:"dorks,omitempty"`
-	Took     string         `json:"took"`
+	Phone       string         `json:"phone"`
+	Region      string         `json:"default_region,omitempty"`
+	E164        string         `json:"e164,omitempty"`
+	Local       *local.Lookup  `json:"local,omitempty"`
+	APIs        []*APIBlock    `json:"apis,omitempty"`
+	Telegram    *TelegramBlock `json:"telegram,omitempty"`
+	WhatsApp    *WhatsAppBlock `json:"whatsapp,omitempty"`
+	Ignorant    *IgnorantBlock `json:"ignorant,omitempty"`
+	Edgar       *EdgarBlock    `json:"edgar,omitempty"`
+	Dorks       []dorks.Dork   `json:"dorks,omitempty"`
+	Suggestions []string       `json:"suggestions,omitempty"`
+	Took        string         `json:"took"`
 }
 
 type APIBlock struct {
@@ -136,8 +137,41 @@ func Run(ctx context.Context, input string, opts Options) *Result {
 		}
 	}
 
+	res.Suggestions = collectSuggestions(res)
+
 	res.Took = time.Since(start).Round(time.Millisecond).String()
 	return res
+}
+
+// collectSuggestions inspects skipped sources and produces user-actionable
+// hints — keys to set, subcommands to run — so the UI can surface them as a
+// single footer instead of cluttering the report with N "skipped" lines.
+func collectSuggestions(r *Result) []string {
+	var out []string
+	for _, a := range r.APIs {
+		if a == nil || a.Skipped == "" {
+			continue
+		}
+		switch a.Provider {
+		case "numverify":
+			out = append(out, "set NUMVERIFY_KEY for free validation + carrier (100/mo free)")
+		case "veriphone":
+			out = append(out, "set VERIPHONE_KEY for line type + carrier (1k/mo free)")
+		case "ipqs":
+			out = append(out, "set IPQS_KEY for fraud score + VOIP/abuse flags (1k/mo free)")
+		}
+	}
+	if r.Telegram != nil && r.Telegram.Skipped != "" {
+		if strings.Contains(r.Telegram.Skipped, "TG_APP_ID") {
+			out = append(out, "set TG_APP_ID + TG_APP_HASH (free at my.telegram.org/apps) and run `clank telegram login` for phone → username + name")
+		} else {
+			out = append(out, "run `clank telegram login` for phone → username + name attribution")
+		}
+	}
+	if r.WhatsApp != nil && r.WhatsApp.Skipped != "" {
+		out = append(out, "run `clank whatsapp login` for phone → display name + business + about + device count")
+	}
+	return out
 }
 
 func runAPIs(ctx context.Context, phone string) []*APIBlock {

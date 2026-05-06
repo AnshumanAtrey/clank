@@ -99,33 +99,36 @@ func render(r *Result) {
 	renderLocal(r.Local)
 	fmt.Println()
 
-	if r.APIs != nil {
+	if hasAPIData(r.APIs) {
 		section(bold, "2. Free-tier APIs")
 		for _, a := range r.APIs {
+			if a == nil || a.Skipped != "" {
+				continue
+			}
 			renderAPI(a, faint)
 		}
 		fmt.Println()
 	}
 
-	if r.Telegram != nil {
+	if r.Telegram != nil && r.Telegram.Skipped == "" {
 		section(bold, "3. Telegram")
 		renderTelegram(r.Telegram, faint)
 		fmt.Println()
 	}
 
-	if r.WhatsApp != nil {
+	if r.WhatsApp != nil && r.WhatsApp.Skipped == "" {
 		section(bold, "4. WhatsApp")
 		renderWhatsApp(r.WhatsApp, faint)
 		fmt.Println()
 	}
 
-	if r.Ignorant != nil {
+	if r.Ignorant != nil && r.Ignorant.Skipped == "" {
 		section(bold, "5. Account presence (Instagram / Snapchat / Amazon)")
 		renderIgnorant(r.Ignorant, faint)
 		fmt.Println()
 	}
 
-	if r.Edgar != nil {
+	if r.Edgar != nil && r.Edgar.Skipped == "" {
 		section(bold, "6. SEC EDGAR full-text")
 		renderEdgar(r.Edgar, faint)
 		fmt.Println()
@@ -137,7 +140,27 @@ func render(r *Result) {
 		fmt.Println()
 	}
 
+	if len(r.Suggestions) > 0 {
+		section(bold, "Tips to enrich future runs")
+		for _, s := range r.Suggestions {
+			fmt.Println("  " + faint.Sprint("• "+s))
+		}
+		fmt.Println()
+	}
+
 	fmt.Println(faint.Sprintf("Took %s", r.Took))
+}
+
+// hasAPIData returns true when at least one provider produced a non-skipped
+// result (success, partial result with error, etc.) — i.e. the section has
+// something to render that isn't a missing-key footer hint.
+func hasAPIData(apis []*APIBlock) bool {
+	for _, a := range apis {
+		if a != nil && a.Skipped == "" {
+			return true
+		}
+	}
+	return false
 }
 
 func section(c *color.Color, text string) {
