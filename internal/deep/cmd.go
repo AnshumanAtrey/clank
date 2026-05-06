@@ -28,6 +28,7 @@ Sources:
   - ignorant     Instagram / Snapchat / Amazon presence
   - SEC EDGAR    full-text filings search
   - FCC          unwanted-call complaints (US numbers only, opendata.fcc.gov)
+  - GitHub       phone-in-commit-message search (global, GITHUB_TOKEN optional)
   - Dorks        Google search URLs across social/reputation/individuals/etc.
 
 flags:
@@ -36,6 +37,7 @@ flags:
   --no-apis           skip free-tier API providers
   --no-edgar          skip SEC EDGAR
   --no-fcc            skip FCC complaint lookup
+  --no-github         skip GitHub commit-message search
   --no-dorks          skip generated Google-dork URLs
   --json              JSON output
   --timeout <s>       overall timeout (default 30s; zero-config runs finish in ~2s)
@@ -54,6 +56,7 @@ func Command(args []string) int {
 	noAPIs := fs.Bool("no-apis", false, "skip API providers")
 	noEdgar := fs.Bool("no-edgar", false, "skip SEC EDGAR")
 	noFCC := fs.Bool("no-fcc", false, "skip FCC complaint lookup")
+	noGitHub := fs.Bool("no-github", false, "skip GitHub commit-message search")
 	noDorks := fs.Bool("no-dorks", false, "skip Google-dork URL generation")
 	jsonOut := fs.Bool("json", false, "JSON output")
 	timeoutSec := fs.Int("timeout", int(DefaultTimeout/time.Second), "overall timeout in seconds")
@@ -73,6 +76,7 @@ func Command(args []string) int {
 		SkipAPIs:       *noAPIs,
 		SkipEdgar:      *noEdgar,
 		SkipFCC:        *noFCC,
+		SkipGitHub:     *noGitHub,
 		SkipDorks:      *noDorks,
 		Timeout:        time.Duration(*timeoutSec) * time.Second,
 	})
@@ -144,8 +148,14 @@ func render(r *Result) {
 		fmt.Println()
 	}
 
+	if r.GitHub != nil && r.GitHub.Skipped == "" {
+		section(bold, "8. GitHub commit messages")
+		renderGitHub(r.GitHub, faint)
+		fmt.Println()
+	}
+
 	if len(r.Dorks) > 0 {
-		section(bold, "8. Pivot URLs — Google dorks")
+		section(bold, "9. Pivot URLs — Google dorks")
 		renderDorks(r.Dorks, faint)
 		fmt.Println()
 	}
@@ -399,6 +409,32 @@ func renderFCC(b *FCCBlock, faint *color.Color) {
 	}
 	if len(r.States) > 0 {
 		fmt.Printf("  states : %s\n", strings.Join(r.States, ", "))
+	}
+}
+
+func renderGitHub(b *GitHubBlock, faint *color.Color) {
+	if b.Error != "" {
+		fmt.Println("  " + color.RedString("error — "+truncate(b.Error, 100)))
+		return
+	}
+	if b.Result == nil || b.Result.Returned == 0 {
+		fmt.Println("  " + faint.Sprint("0 commit-message hits"))
+		return
+	}
+	r := b.Result
+	fmt.Printf("  %d unique commit(s)  %s\n", r.Returned, faint.Sprint("("+fmt.Sprintf("%d total reported by GitHub", r.Total)+")"))
+	for _, h := range r.Hits {
+		date := shortDate(h.CommitDate)
+		author := h.AuthorLogin
+		if author == "" {
+			author = h.AuthorEmail
+		}
+		fmt.Printf("    %-10s  %s  %s\n", date, color.New(color.Faint).Sprint(h.Repo), truncate(h.MessageHead, 70))
+		if author != "" {
+			fmt.Printf("    %s\n", faint.Sprint("  by "+author+"  · "+h.URL))
+		} else if h.URL != "" {
+			fmt.Printf("    %s\n", faint.Sprint("  "+h.URL))
+		}
 	}
 }
 

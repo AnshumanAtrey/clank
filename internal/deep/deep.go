@@ -17,6 +17,7 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/dorks"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
 	"github.com/AnshumanAtrey/clank/internal/fcc"
+	clankgithub "github.com/AnshumanAtrey/clank/internal/github"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/local"
 	"github.com/AnshumanAtrey/clank/internal/telegram"
@@ -35,6 +36,7 @@ type Result struct {
 	Ignorant    *IgnorantBlock `json:"ignorant,omitempty"`
 	Edgar       *EdgarBlock    `json:"edgar,omitempty"`
 	FCC         *FCCBlock      `json:"fcc,omitempty"`
+	GitHub      *GitHubBlock   `json:"github,omitempty"`
 	Dorks       []dorks.Dork   `json:"dorks,omitempty"`
 	Suggestions []string       `json:"suggestions,omitempty"`
 	Took        string         `json:"took"`
@@ -77,12 +79,19 @@ type FCCBlock struct {
 	Error   string        `json:"error,omitempty"`
 }
 
+type GitHubBlock struct {
+	Result  *clankgithub.Response `json:"result,omitempty"`
+	Skipped string                `json:"skipped,omitempty"`
+	Error   string                `json:"error,omitempty"`
+}
+
 type Options struct {
 	Region         string
 	SkipMessengers bool
 	SkipEdgar      bool
 	SkipAPIs       bool
 	SkipFCC        bool
+	SkipGitHub     bool
 	SkipDorks      bool
 	Timeout        time.Duration
 }
@@ -154,6 +163,14 @@ func Run(ctx context.Context, input string, opts Options) *Result {
 		}()
 	}
 
+	if !opts.SkipGitHub {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			res.GitHub = runGitHub(runCtx, canonical)
+		}()
+	}
+
 	wg.Wait()
 
 	if !opts.SkipDorks {
@@ -196,6 +213,9 @@ func collectSuggestions(r *Result) []string {
 	}
 	if r.WhatsApp != nil && r.WhatsApp.Skipped != "" {
 		out = append(out, "run `clank whatsapp login` for phone → display name + business + about + device count")
+	}
+	if r.GitHub != nil && r.GitHub.Skipped != "" && strings.Contains(r.GitHub.Skipped, "GITHUB_TOKEN") {
+		out = append(out, "set GITHUB_TOKEN to raise GitHub rate limit from 10/min to 30/min (any classic or fine-grained PAT)")
 	}
 	return out
 }
@@ -314,4 +334,17 @@ func runFCC(ctx context.Context, phone string) *FCCBlock {
 		return &FCCBlock{Error: err.Error()}
 	}
 	return &FCCBlock{Result: resp}
+}
+
+func runGitHub(ctx context.Context, phone string) *GitHubBlock {
+	resp, err := clankgithub.Search(ctx, phone, clankgithub.Options{Limit: 5})
+	if err != nil {
+		// Rate-limit is the most likely failure mode in zero-config use; tag
+		// it specifically so the renderer can suggest GITHUB_TOKEN.
+		if errors.Is(err, clankgithub.ErrRateLimited) {
+			return &GitHubBlock{Skipped: "GitHub rate-limited (10 req/min unauth) — set GITHUB_TOKEN"}
+		}
+		return &GitHubBlock{Error: err.Error()}
+	}
+	return &GitHubBlock{Result: resp}
 }

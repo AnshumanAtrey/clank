@@ -15,6 +15,7 @@ func offlineOpts() Options {
 		SkipAPIs:       true,
 		SkipEdgar:      true,
 		SkipFCC:        true,
+		SkipGitHub:     true,
 	}
 }
 
