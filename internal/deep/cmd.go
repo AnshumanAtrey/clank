@@ -27,6 +27,7 @@ Sources:
   - WhatsApp     phone-to-user (skipped if not paired)
   - ignorant     Instagram / Snapchat / Amazon presence
   - SEC EDGAR    full-text filings search
+  - FCC          unwanted-call complaints (US numbers only, opendata.fcc.gov)
   - Dorks        Google search URLs across social/reputation/individuals/etc.
 
 flags:
@@ -34,6 +35,7 @@ flags:
   --quick             skip Telegram, WhatsApp, ignorant — fast (<3s)
   --no-apis           skip free-tier API providers
   --no-edgar          skip SEC EDGAR
+  --no-fcc            skip FCC complaint lookup
   --no-dorks          skip generated Google-dork URLs
   --json              JSON output
   --timeout <s>       overall timeout (default 30s; zero-config runs finish in ~2s)
@@ -51,6 +53,7 @@ func Command(args []string) int {
 	quick := fs.Bool("quick", false, "skip messengers")
 	noAPIs := fs.Bool("no-apis", false, "skip API providers")
 	noEdgar := fs.Bool("no-edgar", false, "skip SEC EDGAR")
+	noFCC := fs.Bool("no-fcc", false, "skip FCC complaint lookup")
 	noDorks := fs.Bool("no-dorks", false, "skip Google-dork URL generation")
 	jsonOut := fs.Bool("json", false, "JSON output")
 	timeoutSec := fs.Int("timeout", int(DefaultTimeout/time.Second), "overall timeout in seconds")
@@ -69,6 +72,7 @@ func Command(args []string) int {
 		SkipMessengers: *quick,
 		SkipAPIs:       *noAPIs,
 		SkipEdgar:      *noEdgar,
+		SkipFCC:        *noFCC,
 		SkipDorks:      *noDorks,
 		Timeout:        time.Duration(*timeoutSec) * time.Second,
 	})
@@ -134,8 +138,14 @@ func render(r *Result) {
 		fmt.Println()
 	}
 
+	if r.FCC != nil && r.FCC.Skipped == "" {
+		section(bold, "7. FCC complaints (US)")
+		renderFCC(r.FCC, faint)
+		fmt.Println()
+	}
+
 	if len(r.Dorks) > 0 {
-		section(bold, "7. Pivot URLs — Google dorks")
+		section(bold, "8. Pivot URLs — Google dorks")
 		renderDorks(r.Dorks, faint)
 		fmt.Println()
 	}
@@ -363,6 +373,40 @@ func renderEdgar(b *EdgarBlock, faint *color.Color) {
 		}
 		fmt.Printf("    %s  %-6s  %s\n", h.FileDate, h.Form, name)
 	}
+}
+
+func renderFCC(b *FCCBlock, faint *color.Color) {
+	if b.Error != "" {
+		fmt.Println("  " + color.RedString("error — "+truncate(b.Error, 100)))
+		return
+	}
+	if b.Result == nil || b.Result.Count == 0 {
+		fmt.Println("  " + faint.Sprint("0 complaints filed"))
+		return
+	}
+	r := b.Result
+	span := shortDate(r.EarliestDate)
+	if r.LatestDate != "" && r.LatestDate != r.EarliestDate {
+		span = shortDate(r.EarliestDate) + " → " + shortDate(r.LatestDate)
+	}
+	count := color.RedString(fmt.Sprintf("%d", r.Count))
+	if r.Count >= 5 {
+		count = color.New(color.FgRed, color.Bold).Sprintf("%d", r.Count)
+	}
+	fmt.Printf("  %s complaint(s)  %s\n", count, faint.Sprint(span))
+	if len(r.Issues) > 0 {
+		fmt.Printf("  issues : %s\n", strings.Join(r.Issues, ", "))
+	}
+	if len(r.States) > 0 {
+		fmt.Printf("  states : %s\n", strings.Join(r.States, ", "))
+	}
+}
+
+func shortDate(s string) string {
+	if len(s) >= 10 {
+		return s[:10]
+	}
+	return s
 }
 
 // renderDorks prints one URL per (bucket, site) pair, preferring the E.164

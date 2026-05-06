@@ -14,6 +14,7 @@ func offlineOpts() Options {
 		SkipMessengers: true,
 		SkipAPIs:       true,
 		SkipEdgar:      true,
+		SkipFCC:        true,
 	}
 }
 

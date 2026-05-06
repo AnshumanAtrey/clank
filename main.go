@@ -16,6 +16,7 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/deep"
 	"github.com/AnshumanAtrey/clank/internal/dorks"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
+	"github.com/AnshumanAtrey/clank/internal/fcc"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/imei"
 	"github.com/AnshumanAtrey/clank/internal/local"
@@ -46,6 +47,7 @@ Subcommands:
   clank dorks <phone>                   Generate Google-dork URLs across 5 buckets (--open to launch in browser)
   clank imei <15-digit>                 Decode IMEI (Luhn + manufacturer/model from TAC)
   clank edgar <number-or-string>        SEC EDGAR full-text filings search
+  clank fcc <us-phone>                  FCC unwanted-call complaints (US-only, opendata.fcc.gov)
   clank telegram <login|lookup|logout>  Telegram phone-to-user resolver
   clank ignorant <phone>                Phone presence on Instagram / Snapchat / Amazon
   clank whatsapp <login|lookup|logout>  Phone presence on WhatsApp (paired session)
@@ -121,6 +123,8 @@ func main() {
 			os.Exit(audit.Wrap("imei", os.Args[2:], imei.Command))
 		case "edgar":
 			os.Exit(audit.Wrap("edgar", os.Args[2:], edgar.Command))
+		case "fcc":
+			os.Exit(audit.Wrap("fcc", os.Args[2:], fcc.Command))
 		case "ignorant":
 			os.Exit(audit.Wrap("ignorant", os.Args[2:], ignorant.Command))
 		case "whatsapp":

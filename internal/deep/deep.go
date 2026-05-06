@@ -5,6 +5,7 @@ package deep
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/AnshumanAtrey/clank/internal/api"
 	"github.com/AnshumanAtrey/clank/internal/dorks"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
+	"github.com/AnshumanAtrey/clank/internal/fcc"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/local"
 	"github.com/AnshumanAtrey/clank/internal/telegram"
@@ -32,6 +34,7 @@ type Result struct {
 	WhatsApp    *WhatsAppBlock `json:"whatsapp,omitempty"`
 	Ignorant    *IgnorantBlock `json:"ignorant,omitempty"`
 	Edgar       *EdgarBlock    `json:"edgar,omitempty"`
+	FCC         *FCCBlock      `json:"fcc,omitempty"`
 	Dorks       []dorks.Dork   `json:"dorks,omitempty"`
 	Suggestions []string       `json:"suggestions,omitempty"`
 	Took        string         `json:"took"`
@@ -68,11 +71,18 @@ type EdgarBlock struct {
 	Error   string          `json:"error,omitempty"`
 }
 
+type FCCBlock struct {
+	Result  *fcc.Response `json:"result,omitempty"`
+	Skipped string        `json:"skipped,omitempty"`
+	Error   string        `json:"error,omitempty"`
+}
+
 type Options struct {
 	Region         string
 	SkipMessengers bool
 	SkipEdgar      bool
 	SkipAPIs       bool
+	SkipFCC        bool
 	SkipDorks      bool
 	Timeout        time.Duration
 }
@@ -133,6 +143,14 @@ func Run(ctx context.Context, input string, opts Options) *Result {
 		go func() {
 			defer wg.Done()
 			res.Edgar = runEdgar(runCtx, canonical)
+		}()
+	}
+
+	if !opts.SkipFCC {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			res.FCC = runFCC(runCtx, canonical)
 		}()
 	}
 
@@ -283,4 +301,17 @@ func runEdgar(ctx context.Context, phone string) *EdgarBlock {
 		return &EdgarBlock{Error: err.Error()}
 	}
 	return &EdgarBlock{Result: resp}
+}
+
+func runFCC(ctx context.Context, phone string) *FCCBlock {
+	resp, err := fcc.Search(ctx, phone, fcc.Options{Limit: 25})
+	if err != nil {
+		// US-only dataset — surface as a skip rather than an error so non-US
+		// users see a clean report instead of a red error line.
+		if errors.Is(err, fcc.ErrNonUS) {
+			return &FCCBlock{Skipped: "FCC dataset is US-only"}
+		}
+		return &FCCBlock{Error: err.Error()}
+	}
+	return &FCCBlock{Result: resp}
 }
