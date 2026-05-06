@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/AnshumanAtrey/clank/internal/api"
+	"github.com/AnshumanAtrey/clank/internal/dorks"
 	"github.com/AnshumanAtrey/clank/internal/edgar"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/local"
@@ -31,6 +32,7 @@ type Result struct {
 	WhatsApp *WhatsAppBlock `json:"whatsapp,omitempty"`
 	Ignorant *IgnorantBlock `json:"ignorant,omitempty"`
 	Edgar    *EdgarBlock    `json:"edgar,omitempty"`
+	Dorks    []dorks.Dork   `json:"dorks,omitempty"`
 	Took     string         `json:"took"`
 }
 
@@ -70,6 +72,7 @@ type Options struct {
 	SkipMessengers bool
 	SkipEdgar      bool
 	SkipAPIs       bool
+	SkipDorks      bool
 	Timeout        time.Duration
 }
 
@@ -125,6 +128,14 @@ func Run(ctx context.Context, input string, opts Options) *Result {
 	}
 
 	wg.Wait()
+
+	if !opts.SkipDorks {
+		// Pure string templating — no network — but parse failures are non-fatal.
+		if d, err := dorks.Generate(input, opts.Region, nil); err == nil {
+			res.Dorks = d
+		}
+	}
+
 	res.Took = time.Since(start).Round(time.Millisecond).String()
 	return res
 }

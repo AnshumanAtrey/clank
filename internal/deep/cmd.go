@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+
+	"github.com/AnshumanAtrey/clank/internal/dorks"
 )
 
 const usage = `usage: clank deep <phone> [options]
@@ -25,12 +27,14 @@ Sources:
   - WhatsApp     phone-to-user (skipped if not paired)
   - ignorant     Instagram / Snapchat / Amazon presence
   - SEC EDGAR    full-text filings search
+  - Dorks        Google search URLs across social/reputation/individuals/etc.
 
 flags:
   --region <ISO>      default region for parsing (e.g. IN, US)
   --quick             skip Telegram, WhatsApp, ignorant — fast (<3s)
   --no-apis           skip free-tier API providers
   --no-edgar          skip SEC EDGAR
+  --no-dorks          skip generated Google-dork URLs
   --json              JSON output
   --timeout <s>       overall timeout (default 60s)
 
@@ -47,6 +51,7 @@ func Command(args []string) int {
 	quick := fs.Bool("quick", false, "skip messengers")
 	noAPIs := fs.Bool("no-apis", false, "skip API providers")
 	noEdgar := fs.Bool("no-edgar", false, "skip SEC EDGAR")
+	noDorks := fs.Bool("no-dorks", false, "skip Google-dork URL generation")
 	jsonOut := fs.Bool("json", false, "JSON output")
 	timeoutSec := fs.Int("timeout", 60, "overall timeout in seconds")
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
@@ -64,6 +69,7 @@ func Command(args []string) int {
 		SkipMessengers: *quick,
 		SkipAPIs:       *noAPIs,
 		SkipEdgar:      *noEdgar,
+		SkipDorks:      *noDorks,
 		Timeout:        time.Duration(*timeoutSec) * time.Second,
 	})
 
@@ -122,6 +128,12 @@ func render(r *Result) {
 	if r.Edgar != nil {
 		section(bold, "6. SEC EDGAR full-text")
 		renderEdgar(r.Edgar, faint)
+		fmt.Println()
+	}
+
+	if len(r.Dorks) > 0 {
+		section(bold, "7. Pivot URLs — Google dorks")
+		renderDorks(r.Dorks, faint)
 		fmt.Println()
 	}
 
@@ -327,6 +339,41 @@ func renderEdgar(b *EdgarBlock, faint *color.Color) {
 			name = truncate(h.DisplayNames[0], 60)
 		}
 		fmt.Printf("    %s  %-6s  %s\n", h.FileDate, h.Form, name)
+	}
+}
+
+// renderDorks prints one URL per (bucket, site) pair, preferring the E.164
+// (`+`-prefixed) variation when present so the displayed URL is the most
+// canonical form. Full per-variation list stays available in JSON output.
+func renderDorks(d []dorks.Dork, faint *color.Color) {
+	type key struct{ bucket, site string }
+	chosen := map[key]dorks.Dork{}
+	order := []key{}
+	for _, dk := range d {
+		k := key{dk.Bucket, dk.Site}
+		cur, exists := chosen[k]
+		if !exists {
+			chosen[k] = dk
+			order = append(order, k)
+			continue
+		}
+		if !strings.Contains(cur.Query, "+") && strings.Contains(dk.Query, "+") {
+			chosen[k] = dk
+		}
+	}
+
+	currentBucket := ""
+	for _, k := range order {
+		dk := chosen[k]
+		if dk.Bucket != currentBucket {
+			fmt.Println("  " + faint.Sprintf("[%s]", dk.Bucket))
+			currentBucket = dk.Bucket
+		}
+		label := dk.Site
+		if label == "" {
+			label = "google"
+		}
+		fmt.Printf("    %-22s %s\n", label, dk.URL)
 	}
 }
 
