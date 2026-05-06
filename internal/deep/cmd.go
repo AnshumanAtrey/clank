@@ -36,7 +36,7 @@ flags:
   --no-edgar          skip SEC EDGAR
   --no-dorks          skip generated Google-dork URLs
   --json              JSON output
-  --timeout <s>       overall timeout (default 60s)
+  --timeout <s>       overall timeout (default 30s; zero-config runs finish in ~2s)
 
 examples:
   clank deep +14155552671
@@ -53,7 +53,7 @@ func Command(args []string) int {
 	noEdgar := fs.Bool("no-edgar", false, "skip SEC EDGAR")
 	noDorks := fs.Bool("no-dorks", false, "skip Google-dork URL generation")
 	jsonOut := fs.Bool("json", false, "JSON output")
-	timeoutSec := fs.Int("timeout", 60, "overall timeout in seconds")
+	timeoutSec := fs.Int("timeout", int(DefaultTimeout/time.Second), "overall timeout in seconds")
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	if err := fs.Parse(args); err != nil {
 		return 2

@@ -77,10 +77,18 @@ type Options struct {
 	Timeout        time.Duration
 }
 
+// DefaultTimeout is the parent ceiling applied when caller does not supply
+// one. Tightened from the original 60 s in clank ≤ v0.1.0: zero-config runs
+// finish in ~2 s, so 30 s leaves comfortable headroom for paired Telegram /
+// WhatsApp IQ round-trips while still bounding worst-case waits when a slow
+// source hangs. Per-source timeouts arrive with the v0.2.0-rc1 transport
+// rework.
+const DefaultTimeout = 30 * time.Second
+
 func Run(ctx context.Context, input string, opts Options) *Result {
 	start := time.Now()
 	if opts.Timeout == 0 {
-		opts.Timeout = 60 * time.Second
+		opts.Timeout = DefaultTimeout
 	}
 
 	runCtx, cancel := context.WithTimeout(ctx, opts.Timeout)

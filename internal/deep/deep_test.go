@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 )
 
 // offlineOpts skips every block that would touch the network, leaving only the
@@ -86,5 +87,25 @@ func TestRun_NoSuggestionsWhenUserOptsOutOfEverything(t *testing.T) {
 	res := Run(context.Background(), "+14155552671", offlineOpts())
 	if len(res.Suggestions) != 0 {
 		t.Errorf("expected 0 suggestions when user opts out of every source, got %v", res.Suggestions)
+	}
+}
+
+func TestDefaultTimeout_IsReasonable(t *testing.T) {
+	// Pin the default so accidental edits surface in code review. Issue #4
+	// requires zero-config runs to finish in <5 s; the parent ceiling sits
+	// well above that to give paired Telegram / WhatsApp paths headroom.
+	if DefaultTimeout < 10*time.Second || DefaultTimeout > 60*time.Second {
+		t.Errorf("DefaultTimeout = %v, want between 10s and 60s", DefaultTimeout)
+	}
+}
+
+func TestRun_OfflineFinishesWellUnderAcceptanceTarget(t *testing.T) {
+	// Fully-offline path (no network): must complete in well under issue #4's
+	// 5-second acceptance target so the ceiling never bites users on
+	// reasonably-sized inputs.
+	start := time.Now()
+	Run(context.Background(), "+14155552671", offlineOpts())
+	if elapsed := time.Since(start); elapsed > 2*time.Second {
+		t.Errorf("offline Run took %v, expected <2s", elapsed)
 	}
 }
