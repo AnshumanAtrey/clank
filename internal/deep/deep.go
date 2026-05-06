@@ -20,6 +20,7 @@ import (
 	clankgithub "github.com/AnshumanAtrey/clank/internal/github"
 	"github.com/AnshumanAtrey/clank/internal/ignorant"
 	"github.com/AnshumanAtrey/clank/internal/local"
+	"github.com/AnshumanAtrey/clank/internal/ovh"
 	"github.com/AnshumanAtrey/clank/internal/telegram"
 	"github.com/AnshumanAtrey/clank/internal/whatsapp"
 )
@@ -36,6 +37,7 @@ type Result struct {
 	Ignorant    *IgnorantBlock `json:"ignorant,omitempty"`
 	Edgar       *EdgarBlock    `json:"edgar,omitempty"`
 	FCC         *FCCBlock      `json:"fcc,omitempty"`
+	OVH         *OVHBlock      `json:"ovh,omitempty"`
 	GitHub      *GitHubBlock   `json:"github,omitempty"`
 	Dorks       []dorks.Dork   `json:"dorks,omitempty"`
 	Suggestions []string       `json:"suggestions,omitempty"`
@@ -85,12 +87,19 @@ type GitHubBlock struct {
 	Error   string                `json:"error,omitempty"`
 }
 
+type OVHBlock struct {
+	Result  *ovh.Response `json:"result,omitempty"`
+	Skipped string        `json:"skipped,omitempty"`
+	Error   string        `json:"error,omitempty"`
+}
+
 type Options struct {
 	Region         string
 	SkipMessengers bool
 	SkipEdgar      bool
 	SkipAPIs       bool
 	SkipFCC        bool
+	SkipOVH        bool
 	SkipGitHub     bool
 	SkipDorks      bool
 	Timeout        time.Duration
@@ -168,6 +177,14 @@ func Run(ctx context.Context, input string, opts Options) *Result {
 		go func() {
 			defer wg.Done()
 			res.GitHub = runGitHub(runCtx, canonical)
+		}()
+	}
+
+	if !opts.SkipOVH {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			res.OVH = runOVH(runCtx, canonical)
 		}()
 	}
 
@@ -334,6 +351,19 @@ func runFCC(ctx context.Context, phone string) *FCCBlock {
 		return &FCCBlock{Error: err.Error()}
 	}
 	return &FCCBlock{Result: resp}
+}
+
+func runOVH(ctx context.Context, phone string) *OVHBlock {
+	resp, err := ovh.Lookup(ctx, phone, ovh.Options{})
+	if err != nil {
+		// EU-only — surface as skip so non-supported regions get a clean
+		// report rather than a red error.
+		if errors.Is(err, ovh.ErrUnsupportedRegion) {
+			return &OVHBlock{Skipped: "OVH covers EU landline ranges only"}
+		}
+		return &OVHBlock{Error: err.Error()}
+	}
+	return &OVHBlock{Result: resp}
 }
 
 func runGitHub(ctx context.Context, phone string) *GitHubBlock {

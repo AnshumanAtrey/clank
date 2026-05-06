@@ -28,6 +28,7 @@ Sources:
   - ignorant     Instagram / Snapchat / Amazon presence
   - SEC EDGAR    full-text filings search
   - FCC          unwanted-call complaints (US numbers only, opendata.fcc.gov)
+  - OVH          EU landline geolocation — city + ZIP from telephony zones
   - GitHub       phone-in-commit-message search (global, GITHUB_TOKEN optional)
   - Dorks        Google search URLs across social/reputation/individuals/etc.
 
@@ -37,6 +38,7 @@ flags:
   --no-apis           skip free-tier API providers
   --no-edgar          skip SEC EDGAR
   --no-fcc            skip FCC complaint lookup
+  --no-ovh            skip OVH EU geolocation
   --no-github         skip GitHub commit-message search
   --no-dorks          skip generated Google-dork URLs
   --json              JSON output
@@ -56,6 +58,7 @@ func Command(args []string) int {
 	noAPIs := fs.Bool("no-apis", false, "skip API providers")
 	noEdgar := fs.Bool("no-edgar", false, "skip SEC EDGAR")
 	noFCC := fs.Bool("no-fcc", false, "skip FCC complaint lookup")
+	noOVH := fs.Bool("no-ovh", false, "skip OVH EU geolocation")
 	noGitHub := fs.Bool("no-github", false, "skip GitHub commit-message search")
 	noDorks := fs.Bool("no-dorks", false, "skip Google-dork URL generation")
 	jsonOut := fs.Bool("json", false, "JSON output")
@@ -76,6 +79,7 @@ func Command(args []string) int {
 		SkipAPIs:       *noAPIs,
 		SkipEdgar:      *noEdgar,
 		SkipFCC:        *noFCC,
+		SkipOVH:        *noOVH,
 		SkipGitHub:     *noGitHub,
 		SkipDorks:      *noDorks,
 		Timeout:        time.Duration(*timeoutSec) * time.Second,
@@ -148,14 +152,20 @@ func render(r *Result) {
 		fmt.Println()
 	}
 
+	if r.OVH != nil && r.OVH.Skipped == "" {
+		section(bold, "8. OVH telephony zone (EU)")
+		renderOVH(r.OVH, faint)
+		fmt.Println()
+	}
+
 	if r.GitHub != nil && r.GitHub.Skipped == "" {
-		section(bold, "8. GitHub commit messages")
+		section(bold, "9. GitHub commit messages")
 		renderGitHub(r.GitHub, faint)
 		fmt.Println()
 	}
 
 	if len(r.Dorks) > 0 {
-		section(bold, "9. Pivot URLs — Google dorks")
+		section(bold, "10. Pivot URLs — Google dorks")
 		renderDorks(r.Dorks, faint)
 		fmt.Println()
 	}
@@ -409,6 +419,29 @@ func renderFCC(b *FCCBlock, faint *color.Color) {
 	}
 	if len(r.States) > 0 {
 		fmt.Printf("  states : %s\n", strings.Join(r.States, ", "))
+	}
+}
+
+func renderOVH(b *OVHBlock, faint *color.Color) {
+	if b.Error != "" {
+		fmt.Println("  " + color.RedString("error — "+truncate(b.Error, 100)))
+		return
+	}
+	if b.Result == nil || !b.Result.Found {
+		fmt.Println("  " + faint.Sprint("no zone match (likely a mobile number; OVH covers landline ranges only)"))
+		return
+	}
+	r := b.Result
+	parts := []string{r.City}
+	if r.Zip != "" {
+		parts = append(parts, r.Zip)
+	}
+	if r.Zone != nil && r.Zone.Type != "" {
+		parts = append(parts, r.Zone.Type)
+	}
+	fmt.Printf("  %s\n", strings.Join(parts, " · "))
+	if r.Zone != nil && r.Zone.Number != "" {
+		fmt.Printf("  range : %s\n", faint.Sprint(r.Zone.Number))
 	}
 }
 
